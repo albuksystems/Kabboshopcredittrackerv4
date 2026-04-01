@@ -1,0 +1,12 @@
+{
+  "name": "Kabbo Shop Credit Tracker",
+  "short_name": "Kabbo Credit",
+  "description": "Customer credit & debt management for Kabbo Shop",
+  "start_url": "/KabboCredit/",
+  "scope": "/KabboCredit/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0e17",
+  "theme_color": "#c8840a",
+  "categories": ["finance", "business"]
+}
