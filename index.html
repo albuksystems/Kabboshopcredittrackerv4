@@ -1,0 +1,3007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kabbo Shop · Credit Tracker</title>
+<!-- manifest.json optional — app works without it -->
+<meta name="theme-color" content="#c8840a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kabbo Credit">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f0e17;
+  --paper: #f5f0e8;
+  --card: #ffffff;
+  --accent: #c8840a;
+  --accent2: #1a6b3c;
+  --danger: #c0392b;
+  --line: #e2dbd0;
+  --muted: #8a7e6e;
+  --gold-light: #fdf3e3;
+  --shadow: 0 2px 12px rgba(15,14,23,0.08);
+  --shadow-lg: 0 8px 32px rgba(15,14,23,0.14);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--ink);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+}
+.topbar-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.topbar-brand span { color: var(--accent); }
+.topbar-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.1em;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* ── SUMMARY STRIP ── */
+.summary-strip {
+  background: var(--accent);
+  padding: 14px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+}
+.sum-item { }
+.sum-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+.sum-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: var(--ink);
+  border-bottom: 2px solid var(--accent);
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── PANELS ── */
+.panel { display: none; padding: 20px; }
+.panel.active { display: block; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.section-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+/* ── FORM CARD ── */
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  animation: fadeUp 0.3s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.form-row { margin-bottom: 14px; }
+.form-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 5px;
+}
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-select:focus {
+  border-color: var(--accent);
+  background: #fff;
+}
+.form-input::placeholder { color: #bbb; }
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* ── ITEM ROWS ── */
+.items-list { margin-bottom: 14px; }
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 28px;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+  animation: fadeUp 0.2s ease both;
+}
+.item-remove {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: var(--danger);
+  border-radius: 4px;
+  width: 28px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.item-remove:hover { background: #fdd; }
+
+.add-item-btn {
+  width: 100%;
+  padding: 9px;
+  background: var(--gold-light);
+  border: 1.5px dashed var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 14px;
+}
+.add-item-btn:hover { background: #fde8c0; }
+
+/* ── BUTTONS ── */
+.btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+}
+.btn-primary:hover { background: #2a2940; transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  margin-top: 10px;
+}
+.btn-accent:hover { background: #b07208; }
+.btn-green {
+  background: var(--accent2);
+  color: #fff;
+  margin-top: 8px;
+}
+.btn-green:hover { background: #155a32; }
+.btn-sm {
+  padding: 7px 12px;
+  font-size: 11px;
+  width: auto;
+  border-radius: 3px;
+}
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--line);
+  color: var(--muted);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── CUSTOMER CARDS ── */
+.customer-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: fadeUp 0.3s ease both;
+  transition: box-shadow 0.2s;
+}
+.customer-card:hover { box-shadow: var(--shadow-lg); }
+
+.customer-card-header {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+  background: var(--card);
+  transition: background 0.15s;
+}
+.customer-card-header:hover { background: var(--gold-light); }
+
+.cust-info { flex: 1; }
+.cust-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.cust-phone {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+.cust-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.cust-balance {
+  text-align: right;
+}
+.balance-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+.balance-amount.overdue { color: var(--danger); }
+.balance-amount.paid { color: var(--accent2); }
+.balance-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 1px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.badge-overdue { background: #fee; color: var(--danger); border: 1px solid #fcc; }
+.badge-paid { background: #e8f5ee; color: var(--accent2); border: 1px solid #b8dfc9; }
+.badge-partial { background: #fdf3e3; color: var(--accent); border: 1px solid #f0cc80; }
+
+/* ── CUSTOMER DETAIL ── */
+.customer-detail {
+  border-top: 1px solid var(--line);
+  padding: 16px;
+  display: none;
+  background: var(--paper);
+}
+.customer-detail.open { display: block; }
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+}
+.detail-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.detail-table th:last-child { text-align: right; }
+.detail-table td {
+  padding: 8px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed var(--line);
+}
+.detail-table td:last-child {
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+.detail-table tr.payment-row td {
+  color: var(--accent2);
+  font-style: italic;
+}
+.detail-table tr.payment-row td:last-child { color: var(--accent2); }
+
+.detail-total {
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.detail-total-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+.detail-total-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* ── PAYMENT MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,14,23,0.7);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px 12px 0 0;
+  padding: 24px 20px 32px;
+  animation: slideUp 0.3s ease both;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+.modal-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 20px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* ── WHATSAPP PREVIEW ── */
+.wa-preview {
+  background: #e5ddd5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.wa-preview::before {
+  content: 'WhatsApp Preview';
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #888;
+  display: block;
+  margin-bottom: 10px;
+}
+.wa-bubble {
+  background: #fff;
+  border-radius: 0 8px 8px 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #111;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  font-family: 'Sora', sans-serif;
+}
+.wa-time {
+  text-align: right;
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── SEARCH ── */
+.search-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  background: var(--card);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.empty-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  z-index: 999;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── MPESA BLOCK ── */
+.mpesa-block {
+  background: #fff;
+  border: 1.5px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.mpesa-icon {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.mpesa-till {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.mpesa-till strong { color: var(--accent); }
+.mpesa-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── HISTORY TAB ── */
+.history-item {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeUp 0.2s ease both;
+}
+.hist-left .hist-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+.hist-left .hist-items {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.hist-right {
+  text-align: right;
+}
+.hist-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--danger);
+}
+.hist-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── SETTINGS ── */
+.setting-row {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.setting-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .sum-value { font-size: 15px; }
+  .action-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">Kabbo<span> Shop</span></div>
+  <div class="topbar-meta">
+    <div id="todayDate"></div>
+    <div>Credit Tracker v1.2</div>
+  </div>
+</div>
+
+<!-- BACKUP REMINDER BANNER -->
+<div id="backupBanner" style="display:none; background:#1a6b3c; padding:10px 18px; display:none; justify-content:space-between; align-items:center;">
+  <div>
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.7); letter-spacing:0.12em; text-transform:uppercase;">📦 Backup Reminder</div>
+    <div style="font-size:11px; color:#fff; margin-top:2px;" id="backupBannerMsg">Time to back up your data</div>
+  </div>
+  <button onclick="switchTab('settings'); closeBackupBanner();" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:#fff; padding:6px 14px; border-radius:20px; font-family:'Sora',sans-serif; font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap; margin-left:12px;">Back Up →</button>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="summary-strip">
+  <div class="sum-item">
+    <span class="sum-label">Customers</span>
+    <span class="sum-value" id="sumCustomers">0</span>
+  </div>
+  <div class="sum-item">
+    <span class="sum-label">Total Owed</span>
+    <span class="sum-value" id="sumOwed">0</span>
+  </div>
+  <div class="sum-item">
+    <span class="sum-label">Collected</span>
+    <span class="sum-value" id="sumCollected">0</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('customers')">👥 Accounts</button>
+  <button class="tab-btn" onclick="switchTab('add')">➕ Add Debt</button>
+  <button class="tab-btn" onclick="switchTab('reports')">📊 Reports</button>
+  <button class="tab-btn" onclick="switchTab('history')">📋 History</button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+</div>
+
+<!-- ═══ CUSTOMERS PANEL ═══ -->
+<div class="panel active" id="panel-customers">
+  <div class="section-title">Customer Accounts</div>
+  <div class="section-sub">Tap a customer to view & manage</div>
+
+  <div class="search-row">
+    <input class="search-input" type="text" placeholder="Search by name or phone..." oninput="renderCustomers(this.value)">
+  </div>
+
+  <div id="customersList"></div>
+</div>
+
+<!-- ═══ ADD DEBT PANEL ═══ -->
+<div class="panel" id="panel-add">
+  <div class="section-title">Log New Debt</div>
+  <div class="section-sub">Record items taken on credit</div>
+
+  <div class="form-card">
+    <!-- Customer select or new -->
+    <div class="form-row">
+      <label class="form-label">Customer Type</label>
+      <select class="form-select" id="custType" onchange="toggleCustFields()">
+        <option value="existing">Existing Customer</option>
+        <option value="new">New Customer</option>
+      </select>
+    </div>
+
+    <div id="existingCustField" class="form-row">
+      <label class="form-label">Select Customer</label>
+      <select class="form-select" id="existingCustSelect">
+        <option value="">-- Choose customer --</option>
+      </select>
+    </div>
+
+    <div id="newCustFields" style="display:none">
+      <div class="form-row">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" id="newName" placeholder="e.g. Nickson Mulama Lutta">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Phone Number (Unique ID)</label>
+        <input class="form-input" type="tel" id="newPhone" placeholder="e.g. 0791 987439">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Date of Credit</label>
+      <input class="form-input" type="date" id="debtDate">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Items Taken on Credit</label>
+      <div class="items-list" id="itemsList">
+        <div class="item-row">
+          <input class="form-input" type="text" placeholder="Item name" oninput="updateTotal()">
+          <input class="form-input" type="number" placeholder="KES" oninput="updateTotal()" min="0">
+          <button class="item-remove" onclick="removeItem(this)">×</button>
+        </div>
+      </div>
+      <button class="add-item-btn" onclick="addItemRow()">+ Add Another Item</button>
+    </div>
+
+    <div style="background:var(--gold-light); border:1px solid var(--line); border-radius:4px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase;">Total Bill</span>
+      <span style="font-family:'Playfair Display',serif; font-size:22px; color:var(--accent);" id="billTotal">KES 0</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveDebt()">💾 Save Debt Record</button>
+  </div>
+</div>
+
+<!-- ═══ HISTORY PANEL ═══ -->
+<div class="panel" id="panel-history">
+  <div class="section-title">Transaction History</div>
+  <div class="section-sub">All debts & payments logged</div>
+  <div id="historyList"></div>
+</div>
+
+<!-- ═══ SETTINGS PANEL ═══ -->
+<div class="panel" id="panel-settings">
+  <div class="section-title">Shop Settings</div>
+  <div class="section-sub">Configure your shop details</div>
+
+  <div class="setting-row">
+    <label class="setting-label">Shop Name</label>
+    <input class="form-input" type="text" id="settingShopName" value="Kabbo Shop">
+  </div>
+  <div class="setting-row">
+    <label class="setting-label">M-Pesa Buy Goods Till Number</label>
+    <input class="form-input" type="text" id="settingTill" value="4984254">
+  </div>
+  <div class="setting-row">
+    <label class="setting-label">Shop Owner / Manager Name</label>
+    <input class="form-input" type="text" id="settingOwner" value="Kabbo Shop Management">
+  </div>
+  <div class="setting-row">
+    <label class="setting-label">Default Payment Message Tone</label>
+    <select class="form-select" id="settingTone">
+      <option value="friendly">Friendly & Warm</option>
+      <option value="firm">Firm & Professional</option>
+    </select>
+  </div>
+  <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+
+  <!-- BACKUP SECTION -->
+  <div style="margin-top:20px; background:#e8f5ee; border:1.5px solid #b8dfc9; border-radius:6px; padding:16px;">
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:6px;">📦 Data Backup</div>
+    <div style="font-size:11px; color:var(--muted); margin-bottom:14px; line-height:1.6;">
+      Backs up all customers & transactions to your Gmail. Safe even if your phone is lost or reset.
+    </div>
+
+    <div class="setting-row" style="margin-bottom:12px;">
+      <label class="setting-label">Your Gmail Address</label>
+      <input class="form-input" type="email" id="backupEmail" placeholder="yourname@gmail.com">
+    </div>
+
+    <button class="btn" style="background:var(--accent2); color:#fff; width:100%; margin-bottom:8px;" onclick="backupToGmail()">
+      📧 Backup to Gmail Now
+    </button>
+    <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="document.getElementById('restoreFile').click()">
+      📥 Restore from Backup
+    </button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreBackup(this)">
+
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); text-align:center; margin-top:4px;" id="lastBackupDisplay"></div>
+  </div>
+
+  <div style="margin-top:16px; padding:16px; background:#fff3f3; border:1px solid #fcc; border-radius:6px;">
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--danger); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Danger Zone</div>
+    <button class="btn btn-sm" style="background:var(--danger); color:#fff; width:100%; padding:10px;" onclick="clearAllData()">🗑 Clear All Data</button>
+  </div>
+</div>
+
+<!-- ═══ REPORTS PANEL ═══ -->
+<div class="panel" id="panel-reports">
+  <div class="section-title">Period Report</div>
+  <div class="section-sub">Debts &amp; collections for a date range</div>
+
+  <div class="form-card" style="margin-bottom:16px;">
+    <div class="form-row-2">
+      <div>
+        <label class="form-label">From Date</label>
+        <input class="form-input" type="date" id="rptFrom">
+      </div>
+      <div>
+        <label class="form-label">To Date</label>
+        <input class="form-input" type="date" id="rptTo">
+      </div>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+      <button class="btn btn-sm btn-outline" onclick="setPreset('today')">Today</button>
+      <button class="btn btn-sm btn-outline" onclick="setPreset('week')">This Week</button>
+      <button class="btn btn-sm btn-outline" onclick="setPreset('month')">This Month</button>
+      <button class="btn btn-sm btn-outline" onclick="setPreset('all')">All Time</button>
+    </div>
+    <button class="btn btn-primary" onclick="runReport()">&#128202; Generate Report</button>
+  </div>
+
+  <div id="reportOutput" style="display:none;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+      <div style="background:var(--card); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:var(--shadow);">
+        <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:4px;">Total Debts</div>
+        <div style="font-family:'Playfair Display',serif; font-size:22px; color:var(--danger);" id="rptTotalDebt">0</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted);" id="rptDebtCount">0 entries</div>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:var(--shadow);">
+        <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:4px;">Collected</div>
+        <div style="font-family:'Playfair Display',serif; font-size:22px; color:var(--accent2);" id="rptTotalPaid">0</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted);" id="rptPaidCount">0 payments</div>
+      </div>
+    </div>
+
+    <div style="background:var(--ink); color:#fff; border-radius:6px; padding:14px 18px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-family:'DM Mono',monospace; font-size:8px; color:rgba(255,255,255,0.5); letter-spacing:0.15em; text-transform:uppercase;">Net Outstanding</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.4); margin-top:2px;" id="rptPeriodLabel">—</div>
+      </div>
+      <div style="font-family:'Playfair Display',serif; font-size:26px; color:var(--accent);" id="rptNet">KES 0</div>
+    </div>
+
+    <div style="background:var(--card); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-bottom:16px; box-shadow:var(--shadow);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase;">Collection Rate</span>
+        <span style="font-family:'Playfair Display',serif; font-size:16px; color:var(--accent2);" id="rptRate">0%</span>
+      </div>
+      <div style="background:var(--line); border-radius:20px; height:8px; overflow:hidden;">
+        <div id="rptRateBar" style="background:var(--accent2); height:100%; border-radius:20px; width:0%; transition:width 0.6s ease;"></div>
+      </div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); margin-top:6px; text-align:center;" id="rptRateNote"></div>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px;">Customer Breakdown</div>
+    <div id="rptCustomerBreakdown"></div>
+    <button class="btn btn-outline" style="margin-top:8px; width:100%; padding:11px;" onclick="printReport()">&#128424; Print This Report</button>
+  </div>
+
+  <div id="reportEmpty" style="display:none;" class="empty-state">
+    <div class="empty-icon">&#128461;</div>
+    <div class="empty-text">No transactions found</div>
+    <div class="empty-sub">Try a different date range</div>
+  </div>
+
+  <!-- ── DEBTORS INSIGHT ── -->
+  <div style="margin-top:24px;">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--ink);margin-bottom:2px;">Debtors Insight</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;">Live overview · all customers</div>
+
+    <!-- PIE CHART -->
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 16px;margin-bottom:14px;box-shadow:var(--shadow);">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px;">🥧 Balance Share</div>
+      <canvas id="debtPieChart" style="width:100%;max-width:280px;display:block;margin:0 auto;"></canvas>
+      <div id="pieLegend" style="margin-top:16px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <!-- TOP BORROWERS -->
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;">🏆 Top Borrowers</div>
+      <div id="topBorrowers"></div>
+    </div>
+
+    <!-- LONGEST OUTSTANDING -->
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;">⏰ Longest Outstanding</div>
+      <div id="longestOutstanding"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENT MODAL ═══ -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-box" style="position:relative;">
+    <button class="modal-close" onclick="closePaymentModal()">×</button>
+    <div class="modal-title">Record Payment</div>
+    <div class="modal-sub" id="payModalSub">Customer name</div>
+    <div class="form-row">
+      <label class="form-label">Amount Paid (KES)</label>
+      <input class="form-input" type="number" id="payAmount" placeholder="Enter amount received" min="1">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Payment Method</label>
+      <select class="form-select" id="payMethod">
+        <option value="M-Pesa">M-Pesa</option>
+        <option value="Cash">Cash</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Date</label>
+      <input class="form-input" type="date" id="payDate">
+    </div>
+    <button class="btn btn-green" onclick="confirmPayment()">✅ Confirm Payment</button>
+  </div>
+</div>
+
+<!-- ═══ WHATSAPP MODAL ═══ -->
+<div class="modal-overlay" id="waModal">
+  <div class="modal-box" style="position:relative; max-height:85vh; overflow-y:auto;">
+    <button class="modal-close" onclick="closeWaModal()">×</button>
+    <div class="modal-title">Send via WhatsApp</div>
+    <div class="modal-sub">Review message before sending</div>
+
+    <div style="margin-bottom:12px;">
+      <label class="form-label">Message Type</label>
+      <select class="form-select" id="waMsgType" onchange="generateWaMessage()">
+        <option value="quick">⚡ Quick Balance</option>
+        <option value="bill">Same-Day Bill</option>
+        <option value="reminder">Payment Reminder</option>
+        <option value="firm">Firm Notice</option>
+        <option value="receipt">Payment Receipt</option>
+      </select>
+    </div>
+
+    <div class="mpesa-block">
+      <div class="mpesa-icon">M</div>
+      <div>
+        <div class="mpesa-till">Till No. <strong id="waTillNo">4984254</strong></div>
+        <div class="mpesa-name" id="waShopName">Kabbo Shop</div>
+      </div>
+    </div>
+
+    <div class="wa-preview">
+      <div class="wa-bubble" id="waMessageText"></div>
+      <div class="wa-time" id="waTime"></div>
+    </div>
+
+    <button class="btn btn-green" style="margin-top:16px;" onclick="openWhatsApp()">
+      📲 Open in WhatsApp
+    </button>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px; width:100%; padding:10px;" onclick="copyWaMessage()">
+      📋 Copy Message
+    </button>
+  </div>
+</div>
+
+<!-- ═══ EDIT CUSTOMER MODAL ═══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box" style="position:relative;">
+    <button class="modal-close" onclick="closeEditModal()">×</button>
+    <div class="modal-title">Edit Customer</div>
+    <div class="modal-sub">Update name or phone number</div>
+    <input type="hidden" id="editCustId">
+    <div class="form-row">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" type="text" id="editName" placeholder="Customer name">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" type="tel" id="editPhone" placeholder="e.g. 0718 643996">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:0.08em;">
+        ℹ️ Enter with or without +254 — WhatsApp will find them either way
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveEdit()" style="margin-top:6px;">💾 Save Changes</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════
+// DATA STORE
+// ════════════════════════════════════
+let customers = JSON.parse(localStorage.getItem('kabbo_customers') || '[]');
+let transactions = JSON.parse(localStorage.getItem('kabbo_transactions') || '[]');
+let settings = JSON.parse(localStorage.getItem('kabbo_settings') || JSON.stringify({
+  shopName: 'Kabbo Shop',
+  till: '4984254',
+  owner: 'Kabbo Shop Management',
+  tone: 'friendly'
+}));
+
+// Pre-load from backup 2026-04-02
+if (customers.length === 0) {
+  customers = [
+  {
+    "id": "cust_waitaka",
+    "name": "Waitaka",
+    "phone": "+254 726 969046",
+    "createdAt": "2026-03-22",
+    "ref": "KBS-W001"
+  },
+  {
+    "id": "cust_nickson",
+    "name": "Nickson Mulama Lutta",
+    "phone": "+254 791 987439",
+    "createdAt": "2026-03-29",
+    "ref": "KBS-N002"
+  },
+  {
+    "id": "id_1775043904377_x5k5y",
+    "name": "Ann Kubai",
+    "phone": "0718 643996",
+    "createdAt": "2026-03-30",
+    "ref": "KBS-A003"
+  },
+  {
+    "id": "id_1775045341688_vot54",
+    "name": "Abigael Musau (Mama Jose)",
+    "phone": "+254726117043",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-A004"
+  },
+  {
+    "id": "id_1775051953909_iqlkf",
+    "name": "Mariam Tumo",
+    "phone": "+254716 875675",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-M005"
+  },
+  {
+    "id": "id_1775053184235_ps180",
+    "name": "Mercy Rhoda Seka",
+    "phone": "+254748465043",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-M006"
+  },
+  {
+    "id": "id_1775055120296_7uh5g",
+    "name": "Mama Joy (Festus)",
+    "phone": "0705556330",
+    "createdAt": "2026-03-31",
+    "ref": "KBS-M007"
+  },
+  {
+    "id": "id_1775060313556_9eyg6",
+    "name": "Stephen Mutie (Baba Sam)",
+    "phone": "0710111017",
+    "createdAt": "2026-03-25",
+    "ref": "KBS-S008"
+  },
+  {
+    "id": "id_1775069275462_1v0d4",
+    "name": "Johny Munno Kiratiya",
+    "phone": "+254717055639",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-J009"
+  },
+  {
+    "id": "id_1775069352658_hztfy",
+    "name": "Raphael okechi",
+    "phone": "+254768047470",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-R010"
+  },
+  {
+    "id": "id_1775073516819_2ci5j",
+    "name": "Elkanah Edwin Musambai",
+    "phone": "+254113894181",
+    "createdAt": "2026-04-01",
+    "ref": "KBS-E011"
+  },
+  {
+    "id": "id_1775104224921_e8yle",
+    "name": "Salome Kamau Njeri",
+    "phone": "0711 839797",
+    "createdAt": "2026-03-31",
+    "ref": "KBS-S012"
+  },
+  {
+    "id": "id_1775106128308_wwccx",
+    "name": "Benjamin Mouka/Trizer",
+    "phone": "0715416069",
+    "createdAt": "2026-03-30",
+    "ref": "KBS-B013"
+  },
+  {
+    "id": "id_1775110385193_eu6jg",
+    "name": "Alice  Nzula (Mama Rhina)",
+    "phone": "0707523963",
+    "createdAt": "2026-04-02",
+    "ref": "KBS-A014"
+  },
+  {
+    "id": "id_1775113142831_ktu1p",
+    "name": "Mariam Karanja",
+    "phone": "0704535112",
+    "createdAt": "2026-04-02",
+    "ref": "KBS-M015"
+  },
+  {
+    "id": "id_1775117105584_5ywvl",
+    "name": "Christine Matata",
+    "phone": "+254743586701",
+    "createdAt": "2026-03-28",
+    "ref": "KBS-C016"
+  },
+  {
+    "id": "id_1775124453905_lytuf",
+    "name": "Claire Moora water",
+    "phone": "0729 020540",
+    "createdAt": "2026-04-02",
+    "ref": "KBS-C017"
+  }
+];
+  transactions = [
+  {
+    "id": "tx1",
+    "custId": "cust_waitaka",
+    "type": "debt",
+    "date": "2026-03-22",
+    "item": "Yogurt",
+    "amount": 55
+  },
+  {
+    "id": "tx2",
+    "custId": "cust_waitaka",
+    "type": "debt",
+    "date": "2026-03-22",
+    "item": "Soap",
+    "amount": 50
+  },
+  {
+    "id": "tx3",
+    "custId": "cust_waitaka",
+    "type": "debt",
+    "date": "2026-03-22",
+    "item": "Tissue",
+    "amount": 70
+  },
+  {
+    "id": "tx4",
+    "custId": "cust_waitaka",
+    "type": "debt",
+    "date": "2026-03-27",
+    "item": "Salad \u00bd litre",
+    "amount": 130
+  },
+  {
+    "id": "tx5",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Frosti Fruit Flavoured",
+    "amount": 160
+  },
+  {
+    "id": "tx6",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Soda 2 Ltrs",
+    "amount": 210
+  },
+  {
+    "id": "tx7",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Fresh Milk",
+    "amount": 75
+  },
+  {
+    "id": "tx8",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "G. Nuts",
+    "amount": 20
+  },
+  {
+    "id": "tx9",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Bread",
+    "amount": 65
+  },
+  {
+    "id": "tx10",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Kaluma Tablets",
+    "amount": 10
+  },
+  {
+    "id": "id_1775043904383_50kdk",
+    "custId": "id_1775043904377_x5k5y",
+    "type": "debt",
+    "date": "2026-03-30",
+    "item": "Softcare large",
+    "amount": 40
+  },
+  {
+    "id": "id_1775044007813_dvh7b",
+    "custId": "id_1775043904377_x5k5y",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "T. Leaves",
+    "amount": 10
+  },
+  {
+    "id": "id_1775044515517_ta5by",
+    "custId": "cust_nickson",
+    "type": "payment",
+    "date": "2026-03-30",
+    "amount": 540,
+    "method": "M-Pesa"
+  },
+  {
+    "id": "id_1775044565518_vtaod",
+    "custId": "cust_waitaka",
+    "type": "payment",
+    "date": "2026-03-31",
+    "amount": 305,
+    "method": "M-Pesa"
+  },
+  {
+    "id": "id_1775045341690_co6n6",
+    "custId": "id_1775045341688_vot54",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Rice",
+    "amount": 40
+  },
+  {
+    "id": "id_1775045341690_ic0xl",
+    "custId": "id_1775045341688_vot54",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Salad",
+    "amount": 60
+  },
+  {
+    "id": "id_1775051953916_t5gtm",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Zeesoft",
+    "amount": 20
+  },
+  {
+    "id": "id_1775051953916_po5k4",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Fresher Milk (B)",
+    "amount": 60
+  },
+  {
+    "id": "id_1775051953916_vftvt",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Bread (S)",
+    "amount": 35
+  },
+  {
+    "id": "id_1775051953916_u3qt0",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "S. Water",
+    "amount": 30
+  },
+  {
+    "id": "id_1775053184238_mbejn",
+    "custId": "id_1775053184235_ps180",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Soda",
+    "amount": 40
+  },
+  {
+    "id": "id_1775053184240_85gfb",
+    "custId": "id_1775053184235_ps180",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "S. Water",
+    "amount": 10
+  },
+  {
+    "id": "id_1775054380019_l9kjv",
+    "custId": "id_1775053184235_ps180",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Tissue",
+    "amount": 20
+  },
+  {
+    "id": "id_1775055120301_7sudd",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Fresher Milk (s)",
+    "amount": 25
+  },
+  {
+    "id": "id_1775055120302_mv1sf",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Sugar 1/2 Kg",
+    "amount": 80
+  },
+  {
+    "id": "id_1775055120302_7t4o3",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Tissue",
+    "amount": 70
+  },
+  {
+    "id": "id_1775055120302_je2x7",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Softcare diaper (3pcs)",
+    "amount": 60
+  },
+  {
+    "id": "id_1775055120302_3q887",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Fresh Milk",
+    "amount": 30
+  },
+  {
+    "id": "id_1775055120302_byba5",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "S.Water (4 js)",
+    "amount": 20
+  },
+  {
+    "id": "id_1775057698713_o8v2p",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Yogurt",
+    "amount": 30
+  },
+  {
+    "id": "id_1775057698716_qj24e",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Biscuits",
+    "amount": 10
+  },
+  {
+    "id": "id_1775057698716_y2z6q",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Gas refill 6kgs",
+    "amount": 1200
+  },
+  {
+    "id": "id_1775057698717_0pmiw",
+    "custId": "id_1775055120296_7uh5g",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Yummy",
+    "amount": 10
+  },
+  {
+    "id": "id_1775060313561_84xeh",
+    "custId": "id_1775060313556_9eyg6",
+    "type": "debt",
+    "date": "2026-03-25",
+    "item": "Gas refill 6kgs",
+    "amount": 950
+  },
+  {
+    "id": "id_1775068471862_5dnzq",
+    "custId": "id_1775060313556_9eyg6",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Yogurt",
+    "amount": 110
+  },
+  {
+    "id": "id_1775068513575_ctxm1",
+    "custId": "id_1775060313556_9eyg6",
+    "type": "payment",
+    "date": "2026-03-31",
+    "amount": 60,
+    "method": "Cash"
+  },
+  {
+    "id": "id_1775068575164_f3tv6",
+    "custId": "id_1775060313556_9eyg6",
+    "type": "debt",
+    "date": "2026-03-22",
+    "item": "Yogurt bl",
+    "amount": 10
+  },
+  {
+    "id": "id_1775068730861_gmzgf",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "F.Milk",
+    "amount": 75
+  },
+  {
+    "id": "id_1775068730862_nnia5",
+    "custId": "cust_nickson",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "G.nut",
+    "amount": 20
+  },
+  {
+    "id": "id_1775069275467_szmqm",
+    "custId": "id_1775069275462_1v0d4",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Tissue",
+    "amount": 70
+  },
+  {
+    "id": "id_1775069275467_fomxz",
+    "custId": "id_1775069275462_1v0d4",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Yogurt",
+    "amount": 40
+  },
+  {
+    "id": "id_1775069352658_yllqj",
+    "custId": "id_1775069352658_hztfy",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Gas refill 6kgs",
+    "amount": 1250
+  },
+  {
+    "id": "id_1775069717519_vey1t",
+    "custId": "id_1775069352658_hztfy",
+    "type": "payment",
+    "date": "2026-04-01",
+    "amount": 500,
+    "method": "M-Pesa"
+  },
+  {
+    "id": "id_1775073516823_f83ot",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Fresh Milk",
+    "amount": 75
+  },
+  {
+    "id": "id_1775073516823_alz1i",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Softcare Diaper (large) 2 pcs",
+    "amount": 40
+  },
+  {
+    "id": "id_1775073516823_p9i5s",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Mill Bakers Mandazi",
+    "amount": 80
+  },
+  {
+    "id": "id_1775073516823_87mlw",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Happy Biscuits 4 pcs",
+    "amount": 20
+  },
+  {
+    "id": "id_1775073516823_vt2mm",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Zuchu lollipops 2 pcs",
+    "amount": 20
+  },
+  {
+    "id": "id_1775074440130_u87s8",
+    "custId": "id_1775073516819_2ci5j",
+    "type": "payment",
+    "date": "2026-04-01",
+    "amount": 235,
+    "method": "M-Pesa"
+  },
+  {
+    "id": "id_1775104224927_ijyzo",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Food colour",
+    "amount": 80
+  },
+  {
+    "id": "id_1775104279221_8y19r",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Bread",
+    "amount": 35
+  },
+  {
+    "id": "id_1775104279221_manxw",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "M.box",
+    "amount": 5
+  },
+  {
+    "id": "id_1775104331137_3khho",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Supa Loaf",
+    "amount": 65
+  },
+  {
+    "id": "id_1775104331137_2msi2",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "F.milk",
+    "amount": 40
+  },
+  {
+    "id": "id_1775106128311_ekwjc",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-03-30",
+    "item": "Op balance",
+    "amount": 780
+  },
+  {
+    "id": "id_1775106297187_ll390",
+    "custId": "id_1775106128308_wwccx",
+    "type": "payment",
+    "date": "2026-03-30",
+    "amount": 700,
+    "method": "M-Pesa"
+  },
+  {
+    "id": "id_1775106525067_sl0vm",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-03-30",
+    "item": "Bread",
+    "amount": 65
+  },
+  {
+    "id": "id_1775106590467_bxfgr",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-03-31",
+    "item": "Eggs (1)",
+    "amount": 20
+  },
+  {
+    "id": "id_1775106813778_byg5r",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Bread",
+    "amount": 65
+  },
+  {
+    "id": "id_1775106813779_813yz",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Sugar (1 kg)",
+    "amount": 150
+  },
+  {
+    "id": "id_1775106813779_5n6qk",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Bread",
+    "amount": 60
+  },
+  {
+    "id": "id_1775106813779_17xbs",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-01",
+    "item": "Salad",
+    "amount": 260
+  },
+  {
+    "id": "id_1775110385199_na6zi",
+    "custId": "id_1775110385193_eu6jg",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Mama's choice margarine",
+    "amount": 100
+  },
+  {
+    "id": "id_1775110385199_yi7qa",
+    "custId": "id_1775110385193_eu6jg",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "F.milk",
+    "amount": 40
+  },
+  {
+    "id": "id_1775110385200_o8anq",
+    "custId": "id_1775110385193_eu6jg",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Fine Bread",
+    "amount": 65
+  },
+  {
+    "id": "id_1775113142834_4wd8w",
+    "custId": "id_1775113142831_ktu1p",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Bread",
+    "amount": 35
+  },
+  {
+    "id": "id_1775113142834_iws02",
+    "custId": "id_1775113142831_ktu1p",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Fresher (s)",
+    "amount": 25
+  },
+  {
+    "id": "id_1775113142834_3uywk",
+    "custId": "id_1775113142831_ktu1p",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Mandazi",
+    "amount": 10
+  },
+  {
+    "id": "id_1775115267702_374in",
+    "custId": "id_1775110385193_eu6jg",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Cash",
+    "amount": 200
+  },
+  {
+    "id": "id_1775117105586_z0ixi",
+    "custId": "id_1775117105584_5ywvl",
+    "type": "debt",
+    "date": "2026-03-28",
+    "item": "Sugar (1kgs)",
+    "amount": 160
+  },
+  {
+    "id": "id_1775117105586_d2287",
+    "custId": "id_1775117105584_5ywvl",
+    "type": "debt",
+    "date": "2026-03-28",
+    "item": "Salad",
+    "amount": 100
+  },
+  {
+    "id": "id_1775117167786_arscw",
+    "custId": "id_1775117105584_5ywvl",
+    "type": "debt",
+    "date": "2026-03-29",
+    "item": "Fresh Milk",
+    "amount": 75
+  },
+  {
+    "id": "id_1775117328442_sht2f",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Bread",
+    "amount": 65
+  },
+  {
+    "id": "id_1775117328442_68etq",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Mountain Fresh Milk",
+    "amount": 60
+  },
+  {
+    "id": "id_1775117328442_3iju4",
+    "custId": "id_1775106128308_wwccx",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Tea leaves",
+    "amount": 25
+  },
+  {
+    "id": "id_1775120058101_wl3j7",
+    "custId": "id_1775104224921_e8yle",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "M.box",
+    "amount": 5
+  },
+  {
+    "id": "id_1775124453911_p1sx8",
+    "custId": "id_1775124453905_lytuf",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Cash -Nimurod",
+    "amount": 30
+  },
+  {
+    "id": "id_1775126118271_ugp63",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "Fresher Milk (B)",
+    "amount": 60
+  },
+  {
+    "id": "id_1775126118272_p8jcr",
+    "custId": "id_1775051953909_iqlkf",
+    "type": "debt",
+    "date": "2026-04-02",
+    "item": "D. Chocolate",
+    "amount": 10
+  }
+];
+  save();
+}
+
+let currentPayCustId = null;
+let currentWaCustId = null;
+
+function save() {
+  localStorage.setItem('kabbo_customers', JSON.stringify(customers));
+  localStorage.setItem('kabbo_transactions', JSON.stringify(transactions));
+  localStorage.setItem('kabbo_settings', JSON.stringify(settings));
+}
+
+// ════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════
+function getBalance(custId) {
+  return transactions
+    .filter(t => t.custId === custId)
+    .reduce((sum, t) => t.type === 'debt' ? sum + t.amount : sum - t.amount, 0);
+}
+
+function getTotalDebt(custId) {
+  return transactions.filter(t => t.custId === custId && t.type === 'debt').reduce((s,t)=>s+t.amount,0);
+}
+
+function getTotalPaid(custId) {
+  return transactions.filter(t => t.custId === custId && t.type === 'payment').reduce((s,t)=>s+t.amount,0);
+}
+
+function getCustTxns(custId) {
+  return transactions.filter(t => t.custId === custId).sort((a,b)=>new Date(a.date)-new Date(b.date));
+}
+
+function fmtDate(d) {
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-KE', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function fmtTime() {
+  return new Date().toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+}
+
+function uid() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════
+// INIT
+// ════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => { try {
+  // Set today's date
+  const now = new Date();
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('en-KE', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+
+  // Set default dates
+  const todayStr = now.toISOString().split('T')[0];
+  document.getElementById('debtDate').value = todayStr;
+  document.getElementById('payDate').value = todayStr;
+
+  // Load settings
+  document.getElementById('settingShopName').value = settings.shopName;
+  document.getElementById('settingTill').value = settings.till;
+  document.getElementById('settingOwner').value = settings.owner;
+  document.getElementById('settingTone').value = settings.tone;
+
+  renderAll();
+
+  // Backup: load saved email, update display, check reminder
+  const savedEmail = localStorage.getItem('kabbo_backup_email');
+  if (savedEmail) document.getElementById('backupEmail').value = savedEmail;
+  updateLastBackupDisplay();
+  setTimeout(checkBackupReminder, 2000); // show after 2s so app loads first
+  } catch(e) { console.error('Init error:', e); }
+});
+
+function renderAll() {
+  renderCustomers();
+  renderHistory();
+  renderSummary();
+  populateExistingCustomers();
+}
+
+// ════════════════════════════════════
+// SUMMARY
+// ════════════════════════════════════
+function renderSummary() {
+  const totalOwed = customers.reduce((s,c) => s + Math.max(0, getBalance(c.id)), 0);
+  const totalCollected = transactions.filter(t=>t.type==='payment').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('sumCustomers').textContent = customers.length;
+  document.getElementById('sumOwed').textContent = totalOwed.toLocaleString();
+  document.getElementById('sumCollected').textContent = totalCollected.toLocaleString();
+}
+
+// ════════════════════════════════════
+// CUSTOMERS LIST
+// ════════════════════════════════════
+function renderCustomers(search = '') {
+  const el = document.getElementById('customersList');
+  const q = search.toLowerCase();
+  const filtered = customers.filter(c =>
+    c.name.toLowerCase().includes(q) || c.phone.includes(q)
+  );
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">👥</div>
+      <div class="empty-text">${search ? 'No customers found' : 'No customers yet'}</div>
+      <div class="empty-sub">${search ? 'Try a different search' : 'Add a debt to get started'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(c => {
+    const bal = getBalance(c.id);
+    const paid = getTotalPaid(c.id);
+    const debt = getTotalDebt(c.id);
+    let badge = bal > 0
+      ? `<span class="status-badge badge-overdue">Owes KES ${bal.toLocaleString()}</span>`
+      : `<span class="status-badge badge-paid">✓ Fully Paid</span>`;
+    if (bal > 0 && paid > 0) badge = `<span class="status-badge badge-partial">Partial – KES ${bal.toLocaleString()} left</span>`;
+
+    const txns = getCustTxns(c.id);
+    const lastDate = txns.length ? fmtDate(txns[txns.length-1].date) : '—';
+
+    const txRows = txns.map(t => {
+      const isPayment = t.type === 'payment';
+      return `<tr class="${isPayment ? 'payment-row' : ''}">
+        <td>${fmtDate(t.date)}</td>
+        <td>${isPayment ? '💚 Payment ('+t.method+')' : t.item}</td>
+        <td>${isPayment ? '-'+t.amount.toLocaleString() : t.amount.toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="customer-card" id="card_${c.id}">
+      <div class="customer-card-header" onclick="toggleCard('${c.id}')">
+        <div class="cust-info">
+          <div class="cust-name">${c.name}</div>
+          <div class="cust-phone">${c.phone}</div>
+          <div class="cust-date">Last: ${lastDate} · Ref: #${c.ref}</div>
+          ${badge}
+        </div>
+        <div class="cust-balance">
+          <div class="balance-amount ${bal > 0 ? 'overdue' : 'paid'}">
+            ${bal > 0 ? bal.toLocaleString() : '0'}
+          </div>
+          <span class="balance-label">KES Due</span>
+        </div>
+      </div>
+      <div class="customer-detail" id="detail_${c.id}">
+        <table class="detail-table">
+          <thead><tr><th>Date</th><th>Item / Note</th><th>KES</th></tr></thead>
+          <tbody>${txRows}</tbody>
+        </table>
+        <div class="detail-total">
+          <span class="detail-total-label">Outstanding Balance</span>
+          <span class="detail-total-amount">KES ${Math.max(0,bal).toLocaleString()}</span>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-green btn-sm" onclick="openPaymentModal('${c.id}')">💳 Record Payment</button>
+          <button class="btn btn-accent btn-sm" onclick="openWaModal('${c.id}')">📲 Full Statement</button>
+        </div>
+        <div class="action-row" style="margin-top:8px;">
+          <button class="btn btn-sm" style="background:#25C9C0;color:#fff;border:none;" onclick="sendQuickBalance('${c.id}')">⚡ Quick Balance</button>
+          <button class="btn btn-outline btn-sm" onclick="printStatement('${c.id}')">🖨 Print</button>
+        </div>
+        <div class="action-row" style="margin-top:8px;">
+          <button class="btn btn-outline btn-sm" onclick="openEditModal('${c.id}')">✏️ Edit Details</button>
+          <button class="btn btn-sm" style="background:#fee;border:1px solid #fcc;color:var(--danger);" onclick="deleteCustomer('${c.id}')">🗑 Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  const d = document.getElementById('detail_' + id);
+  d.classList.toggle('open');
+}
+
+// ════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  const sorted = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No transactions yet</div></div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(t => {
+    const cust = customers.find(c => c.id === t.custId);
+    const name = cust ? cust.name : 'Unknown';
+    const isPayment = t.type === 'payment';
+    return `<div class="history-item">
+      <div class="hist-left">
+        <div class="hist-name">${name}</div>
+        <div class="hist-items">${isPayment ? '💚 Payment via ' + t.method : '🛒 ' + t.item}</div>
+      </div>
+      <div class="hist-right">
+        <div class="hist-amount" style="color:${isPayment ? 'var(--accent2)' : 'var(--danger)'}">
+          ${isPayment ? '+' : '-'}KES ${t.amount.toLocaleString()}
+        </div>
+        <div class="hist-date">${fmtDate(t.date)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════
+// ADD DEBT
+// ════════════════════════════════════
+function toggleCustFields() {
+  const type = document.getElementById('custType').value;
+  document.getElementById('existingCustField').style.display = type === 'existing' ? 'block' : 'none';
+  document.getElementById('newCustFields').style.display = type === 'new' ? 'block' : 'none';
+}
+
+function populateExistingCustomers() {
+  const sel = document.getElementById('existingCustSelect');
+  sel.innerHTML = '<option value="">-- Choose customer --</option>' +
+    customers.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join('');
+}
+
+function addItemRow() {
+  const list = document.getElementById('itemsList');
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.innerHTML = `
+    <input class="form-input" type="text" placeholder="Item name" oninput="updateTotal()">
+    <input class="form-input" type="number" placeholder="KES" oninput="updateTotal()" min="0">
+    <button class="item-remove" onclick="removeItem(this)">×</button>`;
+  list.appendChild(row);
+}
+
+function removeItem(btn) {
+  const rows = document.querySelectorAll('#itemsList .item-row');
+  if (rows.length === 1) { toast('At least one item required'); return; }
+  btn.closest('.item-row').remove();
+  updateTotal();
+}
+
+function updateTotal() {
+  const inputs = document.querySelectorAll('#itemsList .item-row input[type="number"]');
+  let total = 0;
+  inputs.forEach(i => { total += parseFloat(i.value) || 0; });
+  document.getElementById('billTotal').textContent = 'KES ' + total.toLocaleString();
+}
+
+function saveDebt() {
+  const type = document.getElementById('custType').value;
+  const date = document.getElementById('debtDate').value;
+  let custId;
+
+  if (type === 'new') {
+    const name = document.getElementById('newName').value.trim();
+    const phone = document.getElementById('newPhone').value.trim();
+    if (!name || !phone) { toast('⚠️ Enter customer name & phone'); return; }
+    const refNum = 'KBS-' + name.substring(0,1).toUpperCase() + String(customers.length + 1).padStart(3,'0');
+    custId = uid();
+    customers.push({ id: custId, name, phone, createdAt: date, ref: refNum });
+  } else {
+    custId = document.getElementById('existingCustSelect').value;
+    if (!custId) { toast('⚠️ Select a customer'); return; }
+  }
+
+  const rows = document.querySelectorAll('#itemsList .item-row');
+  let added = 0;
+  rows.forEach(row => {
+    const name = row.querySelector('input[type="text"]').value.trim();
+    const amt = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+    if (name && amt > 0) {
+      transactions.push({ id: uid(), custId, type: 'debt', date, item: name, amount: amt });
+      added++;
+    }
+  });
+
+  if (added === 0) { toast('⚠️ Add at least one item with amount'); return; }
+
+  save();
+  renderAll();
+  toast(`✅ ${added} item(s) saved for ${customers.find(c=>c.id===custId).name}`);
+
+  // Reset form
+  document.getElementById('newName').value = '';
+  document.getElementById('newPhone').value = '';
+  document.getElementById('itemsList').innerHTML = `<div class="item-row">
+    <input class="form-input" type="text" placeholder="Item name" oninput="updateTotal()">
+    <input class="form-input" type="number" placeholder="KES" oninput="updateTotal()" min="0">
+    <button class="item-remove" onclick="removeItem(this)">×</button></div>`;
+  updateTotal();
+  switchTab('customers');
+}
+
+// ════════════════════════════════════
+// PAYMENT MODAL
+// ════════════════════════════════════
+function openPaymentModal(custId) {
+  currentPayCustId = custId;
+  const cust = customers.find(c => c.id === custId);
+  const bal = getBalance(custId);
+  document.getElementById('payModalSub').textContent = `${cust.name} · Balance: KES ${bal.toLocaleString()}`;
+  document.getElementById('payAmount').value = '';
+  document.getElementById('payDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('paymentModal').classList.add('open');
+}
+
+function closePaymentModal() {
+  document.getElementById('paymentModal').classList.remove('open');
+}
+
+function confirmPayment() {
+  const amount = parseFloat(document.getElementById('payAmount').value);
+  const method = document.getElementById('payMethod').value;
+  const date = document.getElementById('payDate').value;
+  if (!amount || amount <= 0) { toast('⚠️ Enter a valid amount'); return; }
+
+  const bal = getBalance(currentPayCustId);
+  if (amount > bal) { toast('⚠️ Amount exceeds balance of KES ' + bal); return; }
+
+  transactions.push({ id: uid(), custId: currentPayCustId, type: 'payment', date, amount, method });
+  save();
+  renderAll();
+  closePaymentModal();
+
+  const cust = customers.find(c => c.id === currentPayCustId);
+  const newBal = getBalance(currentPayCustId);
+  toast(`✅ KES ${amount.toLocaleString()} recorded for ${cust.name}. Balance: KES ${newBal}`);
+}
+
+// ════════════════════════════════════
+// WHATSAPP MODAL
+// ════════════════════════════════════
+function openWaModal(custId) {
+  currentWaCustId = custId;
+  document.getElementById('waTillNo').textContent = settings.till;
+  document.getElementById('waShopName').textContent = settings.shopName;
+  document.getElementById('waMsgType').value = settings.tone === 'firm' ? 'firm' : 'bill';
+  document.getElementById('waTime').textContent = fmtTime() + ' ✓✓';
+  generateWaMessage();
+  document.getElementById('waModal').classList.add('open');
+}
+
+function closeWaModal() {
+  document.getElementById('waModal').classList.remove('open');
+}
+
+function getUnpaidItems(custId) {
+  // Returns only items that contribute to current outstanding balance
+  // Works by walking transactions chronologically and tracking running balance
+  const allTxns = getCustTxns(custId);
+  let balance = 0;
+  let unpaidDebts = [];
+
+  allTxns.forEach(t => {
+    if (t.type === 'debt') {
+      balance += t.amount;
+      unpaidDebts.push({...t, remaining: t.amount});
+    } else if (t.type === 'payment') {
+      // Apply payment against oldest debts first (FIFO)
+      let toPay = t.amount;
+      unpaidDebts = unpaidDebts.map(d => {
+        if (toPay <= 0) return d;
+        const paid = Math.min(toPay, d.remaining);
+        toPay -= paid;
+        return {...d, remaining: d.remaining - paid};
+      }).filter(d => d.remaining > 0);
+      balance -= t.amount;
+    }
+  });
+  return unpaidDebts;
+}
+
+function generateWaMessage() {
+  const cust = customers.find(c => c.id === currentWaCustId);
+  if (!cust) return;
+
+  const type = document.getElementById('waMsgType').value;
+  const unpaidItems = getUnpaidItems(cust.id);
+  const payments = getCustTxns(cust.id).filter(t => t.type === 'payment');
+  const bal = getBalance(cust.id);
+  const shop = settings.shopName;
+  const till = settings.till;
+  const owner = settings.owner;
+
+  // Only show unpaid items in statement messages
+  const txns = unpaidItems;
+  const itemLines = unpaidItems.map(t =>
+    '📅 ' + fmtDate(t.date) + ' – ' + t.item +
+    '.'.repeat(Math.max(1, 26 - t.item.length)) +
+    'KES ' + t.remaining.toLocaleString()
+  ).join('\n');
+
+  const line = '─'.repeat(27);
+
+  let msg = '';
+
+  if (type === 'quick') {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-KE', {hour:'2-digit', minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-KE', {day:'numeric', month:'short', year:'numeric'});
+    msg = bal > 0
+      ? `Hello ${cust.name.split(' ')[0]} 👋\n\nYour current balance at *${shop}* as of ${dateStr}, ${timeStr}:\n\n💰 *KES ${bal.toLocaleString()}*\n\nKindly pay via *M-Pesa Buy Goods*\n🏪 Till No: *${till}* (${shop})\n\nThank you 🙏`
+      : `Hello ${cust.name.split(' ')[0]} 👋\n\nYour balance at *${shop}* as of ${dateStr}, ${timeStr}:\n\n✅ *KES 0 — Fully Settled*\n\nThank you for your payment! 🙏\n*${shop}*`;
+
+  } else if (type === 'bill') {
+    msg = `Hello ${cust.name.split(' ')[0]} 👋\n\nThank you for shopping at *${shop}* today! Please find below your bill:\n\n${itemLines}\n${line}\n💰 *Total Bill: KES ${bal.toLocaleString()}*\n\nKindly settle your bill at your earliest convenience via:\n🏪 *M-Pesa Buy Goods – Till No. ${till}*\nAccount Name: *${shop}*\n\nThank you for your support 🙏\n*${shop}*`;
+  } else if (type === 'reminder') {
+    msg = `Hello ${cust.name.split(' ')[0]} 👋\n\nThis is a friendly reminder from *${shop}* regarding your outstanding balance.\n\n${itemLines}\n${line}\n💰 *Outstanding Balance: KES ${bal.toLocaleString()}*\n\nKindly pay via *M-Pesa Buy Goods*\n🏪 Till No: *${till}* (${shop})\n\nThank you for your continued loyalty 🙏\n*${shop}*`;
+  } else if (type === 'firm') {
+    msg = `Dear ${cust.name},\n\nWe hope this message finds you well. Please find below your outstanding account summary with *${shop}*:\n\n${itemLines}\n${line}\n*BALANCE DUE: KES ${bal.toLocaleString()}*\n\nWe kindly request that you clear this balance as soon as possible.\n\n🏪 *M-Pesa Buy Goods – Till No. ${till}*\nAccount Name: *${shop}*\n\nFor queries, please contact us on this number.\n\nRegards,\n*${owner}*`;
+  } else if (type === 'receipt') {
+    if (!payments.length) {
+      msg = `No payments recorded yet for ${cust.name}.`;
+    } else {
+      const lastPay = payments[payments.length - 1];
+      const newBal = bal;
+      msg = `Dear ${cust.name.split(' ')[0]},\n\n✅ *Payment Received – ${shop}*\n\nWe confirm receipt of:\n💚 *KES ${lastPay.amount.toLocaleString()}* via ${lastPay.method}\n📅 Date: ${fmtDate(lastPay.date)}\n\n${newBal > 0 ? `Remaining Balance: *KES ${newBal.toLocaleString()}*\n\nPlease settle the remaining balance at your convenience.` : `Your account is now *fully settled* ✅\nThank you for your prompt payment!`}\n\n🏪 *${shop}*`;
+    }
+  }
+
+  document.getElementById('waMessageText').textContent = msg;
+}
+
+function sendQuickBalance(custId) {
+  // Open WhatsApp modal with Quick Balance pre-selected
+  currentWaCustId = custId;
+  document.getElementById('waTillNo').textContent = settings.till;
+  document.getElementById('waShopName').textContent = settings.shopName;
+  document.getElementById('waMsgType').value = 'quick';
+  document.getElementById('waTime').textContent = new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'}) + ' ✓✓';
+  generateWaMessage();
+  document.getElementById('waModal').classList.add('open');
+}
+
+function normalizePhone(raw) {
+  // Remove spaces, dashes, brackets
+  let p = raw.replace(/[\s\-\(\)]/g, '');
+  // Remove leading +
+  p = p.replace(/^\+/, '');
+  // If starts with 0 (local Kenya), replace with 254
+  if (p.startsWith('0')) p = '254' + p.slice(1);
+  // If already starts with 254, leave as is
+  // If starts with 7 or 1 (no country code), add 254
+  if (p.startsWith('7') || p.startsWith('1')) p = '254' + p;
+  return p;
+}
+
+function openWhatsApp() {
+  const cust = customers.find(c => c.id === currentWaCustId);
+  const msg = document.getElementById('waMessageText').textContent;
+  const phone = normalizePhone(cust.phone);
+  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+function copyWaMessage() {
+  const msg = document.getElementById('waMessageText').textContent;
+  navigator.clipboard.writeText(msg).then(() => toast('📋 Message copied!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = msg; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('📋 Message copied!');
+  });
+}
+
+// ════════════════════════════════════
+// PRINT STATEMENT — Full Professional Design
+// ════════════════════════════════════
+function printStatement(custId) {
+  const cust = customers.find(c => c.id === custId);
+  const bal = getBalance(custId);
+  const shop = settings.shopName;
+  const till = settings.till;
+  const unpaid = getUnpaidItems(custId);
+  const totalPaid = getCustTxns(custId).filter(t=>t.type==='payment').reduce((s,t)=>s+t.amount,0);
+  const today = new Date().toLocaleDateString('en-KE',{day:'numeric',month:'long',year:'numeric'});
+  const year = new Date().getFullYear();
+
+  // Build table rows — only unpaid items
+  let running = 0;
+  const itemRows = unpaid.map((t,i) => {
+    running += t.remaining;
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:10px;color:#7a7060;padding:10px 4px;border-bottom:1px dashed #e0d9cc;white-space:nowrap;">' + fmtDate(t.date) + '</td>' +
+      '<td style="font-size:13px;font-weight:500;padding:10px 8px;border-bottom:1px dashed #e0d9cc;">' + t.item + '</td>' +
+      '<td style="font-family:monospace;font-size:12px;text-align:right;padding:10px 4px;border-bottom:1px dashed #e0d9cc;">' + t.remaining.toLocaleString() + '</td>' +
+      '<td style="font-family:monospace;font-size:12px;font-weight:600;text-align:right;padding:10px 4px;border-bottom:1px dashed #e0d9cc;">' + running.toLocaleString() + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const prevPaidRow = totalPaid > 0
+    ? '<tr style="color:#1a6b3c;">' +
+      '<td colspan="2" style="font-size:11px;font-style:italic;padding:8px 4px;border-bottom:1px dashed #e0d9cc;">💚 Previously settled</td>' +
+      '<td style="font-family:monospace;font-size:11px;text-align:right;padding:8px 4px;border-bottom:1px dashed #e0d9cc;color:#1a6b3c;">-' + totalPaid.toLocaleString() + '</td>' +
+      '<td style="font-family:monospace;font-size:11px;text-align:right;padding:8px 4px;border-bottom:1px dashed #e0d9cc;color:#1a6b3c;">0</td>' +
+    '</tr>' : '';
+
+  const html = '<!DOCTYPE html><html><head>' +
+    '<meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + shop + ' – Statement: ' + cust.name + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">' +
+    '<style>' +
+      ':root{--ink:#1a1a2e;--paper:#faf7f0;--accent:#c8840a;--accent-light:#fdf3e3;--line:#e0d9cc;--muted:#7a7060;}' +
+      '*{margin:0;padding:0;box-sizing:border-box;}' +
+      'body{font-family:"DM Sans",sans-serif;background:var(--paper);color:var(--ink);padding:32px 16px 60px;}' +
+      '.page{width:100%;max-width:480px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:2px;box-shadow:4px 6px 0 #d4c9b0,8px 12px 0 #e8e0d0;overflow:hidden;}' +
+      '.shop-header{background:var(--ink);color:#fff;padding:28px 28px 22px;position:relative;overflow:hidden;}' +
+      '.shop-header::before{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;border:2px solid rgba(200,132,10,0.4);border-radius:50%;}' +
+      '.shop-header::after{content:"";position:absolute;bottom:-20px;left:60px;width:80px;height:80px;border:1px solid rgba(200,132,10,0.2);border-radius:50%;}' +
+      '.shop-name{font-family:"Playfair Display",serif;font-size:26px;color:#fff;}' +
+      '.shop-name span{color:var(--accent);}' +
+      '.shop-sub{font-family:"DM Mono",monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px;}' +
+      '.doc-label{margin-top:16px;display:inline-block;background:var(--accent);color:#fff;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;padding:4px 10px;border-radius:2px;}' +
+      '.client-block{padding:18px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;background:var(--accent-light);}' +
+      '.client-label{font-family:"DM Mono",monospace;font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;}' +
+      '.client-name{font-family:"Playfair Display",serif;font-size:18px;color:var(--ink);line-height:1.3;}' +
+      '.client-phone{font-family:"DM Mono",monospace;font-size:11px;color:var(--accent);margin-top:3px;}' +
+      '.meta-right{text-align:right;}' +
+      '.meta-row{font-family:"DM Mono",monospace;font-size:10px;color:var(--muted);margin-bottom:3px;}' +
+      '.meta-row strong{color:var(--ink);display:block;font-size:11px;}' +
+      '.table-wrap{padding:0 28px;}' +
+      'table{width:100%;border-collapse:collapse;margin-top:20px;}' +
+      'thead tr{border-bottom:2px solid var(--ink);}' +
+      'th{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:0 0 8px;text-align:left;font-weight:500;}' +
+      'th:nth-child(3),th:nth-child(4){text-align:right;}' +
+      '.totals-block{margin:16px 0 0;border-top:2px solid var(--ink);padding:14px 0 22px;}' +
+      '.total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;color:var(--muted);}' +
+      '.total-row span:last-child{font-family:"DM Mono",monospace;font-size:11px;}' +
+      '.outstanding-row{background:var(--ink);color:#fff;padding:12px 14px;border-radius:2px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;}' +
+      '.outstanding-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.6);}' +
+      '.outstanding-amount{font-family:"Playfair Display",serif;font-size:22px;color:var(--accent);}' +
+      '.stmt-footer{background:var(--accent-light);border-top:1px solid var(--line);padding:18px 28px 24px;margin-top:4px;}' +
+      '.footer-note{font-size:11px;color:var(--muted);line-height:1.6;font-style:italic;}' +
+      '.mpesa-block{margin-top:14px;background:#fff;border:1.5px solid var(--accent);border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;}' +
+      '.mpesa-icon{background:var(--accent);color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}' +
+      '.mpesa-till{font-family:"Playfair Display",serif;font-size:16px;color:var(--ink);}' +
+      '.mpesa-till strong{color:var(--accent);}' +
+      '.mpesa-name{font-family:"DM Mono",monospace;font-size:10px;color:var(--muted);margin-top:2px;}' +
+      '.footer-brand{margin-top:12px;font-family:"DM Mono",monospace;font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;text-align:center;}' +
+      '@media print{body{padding:0;background:#fff;}.page{box-shadow:none;border:none;}}' +
+    '</style></head><body>' +
+    '<div class="page">' +
+
+    // HEADER
+    '<div class="shop-header">' +
+      '<div class="shop-name">' + shop.split(' ')[0] + '<span> ' + (shop.split(' ')[1]||'') + '</span></div>' +
+      '<div class="shop-sub">Customer Credit Statement</div>' +
+      '<div class="doc-label">Statement of Account</div>' +
+    '</div>' +
+
+    // CLIENT BLOCK
+    '<div class="client-block">' +
+      '<div>' +
+        '<div class="client-label">Billed To</div>' +
+        '<div class="client-name">' + cust.name + '</div>' +
+        '<div class="client-phone">' + cust.phone + '</div>' +
+        (totalPaid > 0 ? '<div style="margin-top:5px;display:inline-block;padding:2px 8px;border-radius:20px;background:#e8f5ee;border:1px solid #b8dfc9;font-family:DM Mono,monospace;font-size:8px;color:#1a6b3c;letter-spacing:0.1em;text-transform:uppercase;">Outstanding items only</div>' : '') +
+      '</div>' +
+      '<div class="meta-right">' +
+        '<div class="meta-row">Statement Date <strong>' + today + '</strong></div>' +
+        '<div class="meta-row">Reference <strong>#' + cust.ref + '</strong></div>' +
+      '</div>' +
+    '</div>' +
+
+    // TABLE
+    '<div class="table-wrap">' +
+      '<table>' +
+        '<thead><tr>' +
+          '<th>Date</th><th>Item</th>' +
+          '<th style="text-align:right;">Amt (KES)</th>' +
+          '<th style="text-align:right;">Balance</th>' +
+        '</tr></thead>' +
+        '<tbody>' + itemRows + prevPaidRow + '</tbody>' +
+      '</table>' +
+
+      // TOTALS
+      '<div class="totals-block">' +
+        '<div class="total-row"><span>Total Items</span><span>' + unpaid.length + '</span></div>' +
+        '<div class="total-row"><span>Total Credit (unpaid)</span><span>KES ' + bal.toLocaleString() + '</span></div>' +
+        (totalPaid > 0 ? '<div class="total-row"><span>Previously Settled</span><span style="color:#1a6b3c;">KES ' + totalPaid.toLocaleString() + '</span></div>' : '') +
+        '<div class="outstanding-row">' +
+          '<span class="outstanding-label">Outstanding Balance</span>' +
+          '<span class="outstanding-amount">KES ' + Math.max(0,bal).toLocaleString() + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // FOOTER
+    '<div class="stmt-footer">' +
+      '<div class="footer-note">Kindly clear your outstanding balance of <strong>KES ' + Math.max(0,bal).toLocaleString() + '</strong> at your earliest convenience. Thank you for shopping with us.</div>' +
+      '<div class="mpesa-block">' +
+        '<div class="mpesa-icon">M</div>' +
+        '<div>' +
+          '<div class="mpesa-name" style="margin-bottom:2px;">Pay via M-Pesa Buy Goods</div>' +
+          '<div class="mpesa-till">Till No. <strong>' + till + '</strong></div>' +
+          '<div class="mpesa-name">' + shop + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="footer-brand">' + shop + ' · Credit Statement · ' + year + '</div>' +
+    '</div>' +
+
+    '</div>' +
+    '<script>window.onload=function(){window.print();}<\/script>' +
+    '</body></html>';
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+// ════════════════════════════════════
+// DELETE
+// ════════════════════════════════════
+function deleteCustomer(custId) {
+  if (!confirm('Delete this customer and all their records?')) return;
+  customers = customers.filter(c => c.id !== custId);
+  transactions = transactions.filter(t => t.custId !== custId);
+  save();
+  renderAll();
+  toast('🗑 Customer deleted');
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ This will delete ALL customers and transactions. Are you sure?')) return;
+  customers = []; transactions = [];
+  save();
+  renderAll();
+  toast('All data cleared');
+}
+
+// ════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════
+function saveSettings() {
+  settings.shopName = document.getElementById('settingShopName').value;
+  settings.till = document.getElementById('settingTill').value;
+  settings.owner = document.getElementById('settingOwner').value;
+  settings.tone = document.getElementById('settingTone').value;
+  save();
+  toast('✅ Settings saved');
+}
+
+// ════════════════════════════════════
+// TABS
+// ════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const idx = ['customers','add','reports','history','settings'].indexOf(name);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if (name === 'add') populateExistingCustomers();
+  if (name === 'reports') { initReportDates(); renderInsights(); }
+}
+
+
+// ════════════════════════════════════
+// REPORTS
+// ════════════════════════════════════
+function initReportDates() {
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const today = now.toISOString().split('T')[0];
+  if (!document.getElementById('rptFrom').value) document.getElementById('rptFrom').value = firstOfMonth;
+  if (!document.getElementById('rptTo').value) document.getElementById('rptTo').value = today;
+}
+
+function setPreset(preset) {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  let from = today;
+  if (preset === 'today') {
+    from = today;
+  } else if (preset === 'week') {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    from = new Date(now.setDate(diff)).toISOString().split('T')[0];
+  } else if (preset === 'month') {
+    from = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  } else if (preset === 'all') {
+    from = '2020-01-01';
+  }
+  document.getElementById('rptFrom').value = from;
+  document.getElementById('rptTo').value = new Date().toISOString().split('T')[0];
+  runReport();
+}
+
+function runReport() {
+  const from = document.getElementById('rptFrom').value;
+  const to = document.getElementById('rptTo').value;
+  if (!from || !to) { toast('Set both dates first'); return; }
+
+  const fromD = new Date(from);
+  const toD = new Date(to + 'T23:59:59');
+
+  const inRange = transactions.filter(t => {
+    const d = new Date(t.date);
+    return d >= fromD && d <= toD;
+  });
+
+  const debts = inRange.filter(t => t.type === 'debt');
+  const payments = inRange.filter(t => t.type === 'payment');
+
+  const totalDebt = debts.reduce((s,t)=>s+t.amount,0);
+  const totalPaid = payments.reduce((s,t)=>s+t.amount,0);
+  const net = totalDebt - totalPaid;
+  const rate = totalDebt > 0 ? Math.round((totalPaid/totalDebt)*100) : 0;
+
+  document.getElementById('reportOutput').style.display = inRange.length ? 'block' : 'none';
+  document.getElementById('reportEmpty').style.display = inRange.length ? 'none' : 'block';
+
+  if (!inRange.length) return;
+
+  document.getElementById('rptTotalDebt').textContent = 'KES ' + totalDebt.toLocaleString();
+  document.getElementById('rptDebtCount').textContent = debts.length + ' entr' + (debts.length===1?'y':'ies');
+  document.getElementById('rptTotalPaid').textContent = 'KES ' + totalPaid.toLocaleString();
+  document.getElementById('rptPaidCount').textContent = payments.length + ' payment' + (payments.length===1?'':'s');
+  document.getElementById('rptNet').textContent = 'KES ' + net.toLocaleString();
+  document.getElementById('rptPeriodLabel').textContent = fmtDate(from) + ' – ' + fmtDate(to);
+  document.getElementById('rptRate').textContent = rate + '%';
+  document.getElementById('rptRateNote').textContent =
+    rate >= 80 ? '🟢 Excellent collection rate' :
+    rate >= 50 ? '🟡 Moderate – follow up needed' :
+    '🔴 Low – action required';
+  setTimeout(() => {
+    document.getElementById('rptRateBar').style.width = rate + '%';
+  }, 100);
+
+  // Per-customer breakdown
+  const custIds = [...new Set(inRange.map(t => t.custId))];
+  const breakdown = custIds.map(id => {
+    const cust = customers.find(c => c.id === id);
+    const cDebts = debts.filter(t=>t.custId===id).reduce((s,t)=>s+t.amount,0);
+    const cPaid = payments.filter(t=>t.custId===id).reduce((s,t)=>s+t.amount,0);
+    const cNet = cDebts - cPaid;
+    return { name: cust ? cust.name : 'Unknown', phone: cust ? cust.phone : '', cDebts, cPaid, cNet };
+  }).sort((a,b) => b.cNet - a.cNet);
+
+  document.getElementById('rptCustomerBreakdown').innerHTML = breakdown.map(b => `
+    <div style="background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <div>
+          <div style="font-weight:600; font-size:13px;">${b.name}</div>
+          <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--accent);">${b.phone}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Playfair Display',serif; font-size:16px; color:${b.cNet>0?'var(--danger)':'var(--accent2)'};">KES ${b.cNet.toLocaleString()}</div>
+          <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--muted);">${b.cNet>0?'OWING':'CLEAR'}</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <div style="background:#fff3f3; border-radius:3px; padding:6px 8px; text-align:center;">
+          <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); text-transform:uppercase;">Debts</div>
+          <div style="font-family:'DM Mono',monospace; font-size:12px; color:var(--danger); font-weight:500;">KES ${b.cDebts.toLocaleString()}</div>
+        </div>
+        <div style="background:#e8f5ee; border-radius:3px; padding:6px 8px; text-align:center;">
+          <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); text-transform:uppercase;">Paid</div>
+          <div style="font-family:'DM Mono',monospace; font-size:12px; color:var(--accent2); font-weight:500;">KES ${b.cPaid.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function printReport() {
+  const from = document.getElementById('rptFrom').value;
+  const to = document.getElementById('rptTo').value;
+  const totalDebt = document.getElementById('rptTotalDebt').textContent;
+  const totalPaid = document.getElementById('rptTotalPaid').textContent;
+  const net = document.getElementById('rptNet').textContent;
+  const rate = document.getElementById('rptRate').textContent;
+  const breakdown = document.getElementById('rptCustomerBreakdown').innerHTML;
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Kabbo Shop – Period Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Mono:wght@400&family=Sora:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Sora',sans-serif;background:#faf7f0;padding:24px 16px;}
+    .page{max-width:480px;margin:0 auto;background:#fff;border:1px solid #e0d9cc;box-shadow:4px 6px 0 #d4c9b0;}
+    :root{--ink:#0f0e17;--accent:#c8840a;--accent2:#1a6b3c;--danger:#c0392b;--line:#e2dbd0;--muted:#8a7e6e;--card:#fff;--shadow:0 2px 8px rgba(0,0,0,0.07);--paper:#f5f0e8;}
+  </style>
+  </head><body>
+  <div class="page">
+    <div style="background:#0f0e17;padding:24px 28px;color:#fff;">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;">Kabbo <span style="color:#c8840a">Shop</span></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:0.15em;margin-top:3px;">PERIOD CREDIT REPORT</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.7);margin-top:8px;">${fmtDate(from)} – ${fmtDate(to)}</div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:#fff3f3;border:1px solid #fcc;border-radius:4px;padding:12px;text-align:center;">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:#c0392b;letter-spacing:0.12em;text-transform:uppercase;">Total Debts</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:#c0392b;">${totalDebt}</div>
+        </div>
+        <div style="background:#e8f5ee;border:1px solid #b8dfc9;border-radius:4px;padding:12px;text-align:center;">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:#1a6b3c;letter-spacing:0.12em;text-transform:uppercase;">Collected</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:#1a6b3c;">${totalPaid}</div>
+        </div>
+      </div>
+      <div style="background:#0f0e17;color:#fff;padding:12px 16px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;">Net Outstanding</span>
+        <span style="font-family:'Playfair Display',serif;font-size:22px;color:#c8840a;">${net}</span>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#8a7e6e;margin-bottom:6px;">Collection Rate: <strong style="color:#1a6b3c;">${rate}</strong></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8a7e6e;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;margin-top:14px;">Customer Breakdown</div>
+      ${breakdown}
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#aaa;text-align:center;margin-top:18px;letter-spacing:0.12em;">Kabbo Shop · Generated ${new Date().toLocaleDateString('en-KE')}</div>
+    </div>
+  </div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+
+// ════════════════════════════════════
+// PWA — SERVICE WORKER + INSTALL
+// ════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Only register SW if the file actually exists
+    fetch('sw.js', {method:'HEAD'})
+      .then(r => {
+        if (r.ok) {
+          navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Kabbo Credit: SW registered'))
+            .catch(e => console.log('SW error:', e));
+        }
+      })
+      .catch(() => console.log('sw.js not found — running without offline support'));
+  });
+}
+
+// Install-to-homescreen prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 3 seconds
+  setTimeout(() => {
+    if (deferredPrompt) showInstallBanner();
+  }, 3000);
+});
+
+function showInstallBanner() {
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.style.cssText = `
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:#0f0e17; color:#fff; border:1.5px solid #c8840a;
+    border-radius:40px; padding:12px 20px; display:flex; align-items:center;
+    gap:12px; z-index:9999; box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    font-family:'Sora',sans-serif; font-size:12px; white-space:nowrap;
+    animation: slideUp2 0.4s ease both;
+  `;
+  banner.innerHTML = `
+    <style>@keyframes slideUp2{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+    <span>📲 Install as app on your phone</span>
+    <button onclick="installApp()" style="background:#c8840a;border:none;color:#fff;padding:7px 16px;border-radius:20px;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Install</button>
+    <button onclick="document.getElementById('installBanner').remove()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.remove();
+  if (outcome === 'accepted') toast('✅ App installed! Find it on your home screen.');
+}
+
+window.addEventListener('appinstalled', () => {
+  toast('🎉 Kabbo Credit installed successfully!');
+  deferredPrompt = null;
+});
+
+// ════════════════════════════════════
+// DEBTORS INSIGHT
+// ════════════════════════════════════
+function renderInsights() {
+  const active = customers.filter(cu => getBalance(cu.id) > 0);
+  if (!active.length) {
+    ['debtPieChart','pieLegend','topBorrowers','longestOutstanding'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px 0;">No outstanding balances 🎉</div>';
+    });
+    return;
+  }
+
+  const colors = [
+    '#c0392b','#c8840a','#1a5c8a','#6b3fa0','#1a6b3c',
+    '#d35400','#2e86c1','#8e44ad','#17a589','#cb4335',
+    '#1a252f','#7d6608'
+  ];
+
+  // ── PIE CHART ──
+  const canvas = document.getElementById('debtPieChart');
+  if (!canvas) return;
+  const size = Math.min(canvas.parentElement.offsetWidth - 32, 280);
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const cx = size/2, cy = size/2, r = size/2 - 8;
+
+  const total = active.reduce((s, cu) => s + getBalance(cu.id), 0);
+  let startAngle = -Math.PI / 2;
+
+  active.forEach((cu, i) => {
+    const bal = getBalance(cu.id);
+    const slice = (bal / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label percentage if slice is big enough
+    if (slice > 0.3) {
+      const midAngle = startAngle + slice / 2;
+      const lx = cx + (r * 0.65) * Math.cos(midAngle);
+      const ly = cy + (r * 0.65) * Math.sin(midAngle);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold ' + Math.max(10, size/22) + 'px Sora,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round((bal/total)*100) + '%', lx, ly);
+    }
+    startAngle += slice;
+  });
+
+  // Centre hole for donut effect
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.42, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+
+  // Centre total text
+  ctx.fillStyle = '#0f0e17';
+  ctx.font = 'bold ' + Math.max(11, size/18) + 'px Playfair Display,serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('KES', cx, cy - size/22);
+  ctx.font = 'bold ' + Math.max(13, size/16) + 'px Playfair Display,serif';
+  ctx.fillStyle = '#c8840a';
+  ctx.fillText(total.toLocaleString(), cx, cy + size/22);
+
+  // Legend
+  const legend = document.getElementById('pieLegend');
+  legend.innerHTML = active.map((cu, i) => {
+    const bal = getBalance(cu.id);
+    const pct = Math.round((bal/total)*100);
+    return '<div style="display:flex;align-items:center;gap:8px;">' +
+      '<div style="width:10px;height:10px;border-radius:50%;background:' + colors[i%colors.length] + ';flex-shrink:0;"></div>' +
+      '<div style="flex:1;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + cu.name.split(' ')[0] + (cu.name.includes('(') ? ' ' + cu.name.match(/\(.*?\)/)?.[0] : '') + '</div>' +
+      '<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--danger);margin-left:auto;white-space:nowrap;">KES ' + bal.toLocaleString() + '</div>' +
+      '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);width:28px;text-align:right;">' + pct + '%</div>' +
+    '</div>';
+  }).join('');
+
+  // ── TOP BORROWERS ──
+  const sorted = [...active].sort((a,b) => getBalance(b.id) - getBalance(a.id));
+  const topEl = document.getElementById('topBorrowers');
+  topEl.innerHTML = sorted.map((cu, i) => {
+    const bal = getBalance(cu.id);
+    const pct = Math.round((bal/total)*100);
+    const barColor = i === 0 ? 'var(--danger)' : i === 1 ? 'var(--accent)' : 'var(--muted)';
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+    return '<div style="margin-bottom:12px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<span style="font-size:14px;">' + medal + '</span>' +
+          '<span style="font-size:12px;font-weight:600;">' + cu.name + '</span>' +
+        '</div>' +
+        '<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--danger);font-weight:600;">KES ' + bal.toLocaleString() + '</span>' +
+      '</div>' +
+      '<div style="background:var(--line);border-radius:20px;height:6px;overflow:hidden;">' +
+        '<div style="background:' + barColor + ';height:100%;border-radius:20px;width:' + pct + '%;transition:width 0.8s ease;"></div>' +
+      '</div>' +
+      '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;text-align:right;">' + pct + '% of total debt</div>' +
+    '</div>';
+  }).join('');
+
+  // ── LONGEST OUTSTANDING ──
+  const now = new Date();
+  const aged = active.map(cu => {
+    // Find oldest unpaid transaction date
+    const unpaid = getUnpaidItems(cu.id);
+    const oldest = unpaid.length
+      ? unpaid.reduce((min, t) => t.date < min ? t.date : min, unpaid[0].date)
+      : cu.createdAt;
+    const days = Math.floor((now - new Date(oldest)) / 86400000);
+    return { cu, days, bal: getBalance(cu.id), oldest };
+  }).sort((a,b) => b.days - a.days);
+
+  const longEl = document.getElementById('longestOutstanding');
+  longEl.innerHTML = aged.map((entry, i) => {
+    const urgency = entry.days >= 14 ? 'var(--danger)' :
+                    entry.days >= 7  ? 'var(--accent)' : 'var(--accent2)';
+    const flag = entry.days >= 14 ? '🔴' : entry.days >= 7 ? '🟡' : '🟢';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);">' +
+      '<div>' +
+        '<div style="font-size:12px;font-weight:600;">' + flag + ' ' + entry.cu.name + '</div>' +
+        '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">Since ' + fmtDate(entry.oldest) + '</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<div style="font-family:'Playfair Display',serif;font-size:15px;color:' + urgency + ';">' + entry.days + ' days</div>' +
+        '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">KES ' + entry.bal.toLocaleString() + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ════════════════════════════════════
+// BACKUP & RESTORE
+// ════════════════════════════════════
+
+function getBackupEmail() {
+  return document.getElementById('backupEmail').value.trim() ||
+         localStorage.getItem('kabbo_backup_email') || '';
+}
+
+function backupToGmail() {
+  const email = getBackupEmail();
+  if (!email || !email.includes('@')) {
+    toast('⚠ Enter your Gmail address first'); return;
+  }
+
+  // Save email for next time
+  localStorage.setItem('kabbo_backup_email', email);
+  document.getElementById('backupEmail').value = email;
+
+  // Build backup payload
+  const payload = {
+    version: '1.0',
+    app: 'Kabbo Shop Credit Tracker',
+    backedUpAt: new Date().toISOString(),
+    customers,
+    transactions
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-KE', {day:'numeric', month:'short', year:'numeric'});
+  const totalOwed = customers.reduce((s,c) => s + Math.max(0, getBalance(c.id)), 0);
+
+  // Build human-readable summary for email body
+  const custSummary = customers.map(cu => {
+    const bal = getBalance(cu.id);
+    return `  • ${cu.name} (${cu.phone}) — KES ${Math.max(0,bal).toLocaleString()} owing`;
+  }).join('\n');
+
+  const subject = `Kabbo Shop Backup — ${dateStr} — ${customers.length} customers, KES ${totalOwed.toLocaleString()} total owed`;
+
+  const body = 'KABBO SHOP CREDIT TRACKER — DATA BACKUP\n' +
+    'Generated: ' + dateStr + '\n' +
+    'Customers: ' + customers.length + '\n' +
+    'Total Outstanding: KES ' + totalOwed.toLocaleString() + '\n\n' +
+    'CUSTOMER SUMMARY:\n' + custSummary + '\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'RESTORE INSTRUCTIONS:\n' +
+    '1. Open the Kabbo Credit Tracker app\n' +
+    '2. Go to Settings → Restore from Backup\n' +
+    '3. Paste the backup code and tap Restore\n' +
+    '4. All your data will be restored instantly\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+    'BACKUP DATA (JSON):\n' + json;
+
+  // Open Gmail compose
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, '_blank');
+
+  // Also trigger file download as secondary backup
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `KabboCredit_Backup_${now.toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Record last backup time
+  const nowMs = Date.now();
+  localStorage.setItem('kabbo_last_backup', nowMs);
+  updateLastBackupDisplay();
+  closeBackupBanner();
+  toast('✅ Gmail opened + backup file downloaded!');
+}
+
+function restoreBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.customers || !data.transactions) {
+        toast('⚠ Invalid backup file'); return;
+      }
+      if (!confirm('Restore ' + data.customers.length + ' customers from backup dated ' + new Date(data.backedUpAt).toLocaleDateString('en-KE') + '?\n\nThis will REPLACE your current data.')) return;
+
+      customers = data.customers;
+      transactions = data.transactions;
+      save();
+      renderAll();
+      toast(`✅ Restored ${customers.length} customers successfully!`);
+    } catch(err) {
+      toast('⚠ Could not read backup file');
+    }
+  };
+  reader.readAsText(file);
+  input.value = ''; // reset so same file can be re-selected
+}
+
+function updateLastBackupDisplay() {
+  const last = localStorage.getItem('kabbo_last_backup');
+  const el = document.getElementById('lastBackupDisplay');
+  if (!el) return;
+  if (!last) {
+    el.textContent = '⚠ No backup made yet';
+    el.style.color = 'var(--danger)';
+  } else {
+    const days = Math.floor((Date.now() - parseInt(last)) / 86400000);
+    el.textContent = days === 0 ? '✓ Backed up today' :
+                     days === 1 ? '✓ Last backup: yesterday' :
+                     `⚠ Last backup: ${days} days ago`;
+    el.style.color = days >= 3 ? 'var(--danger)' : 'var(--accent2)';
+  }
+}
+
+function checkBackupReminder() {
+  const last = localStorage.getItem('kabbo_last_backup');
+  const banner = document.getElementById('backupBanner');
+  if (!banner) return;
+  if (!last) {
+    // Never backed up
+    document.getElementById('backupBannerMsg').textContent = 'You have never backed up — protect your data!';
+    banner.style.display = 'flex';
+  } else {
+    const days = Math.floor((Date.now() - parseInt(last)) / 86400000);
+    if (days >= 3) {
+      document.getElementById('backupBannerMsg').textContent = `Last backup was ${days} days ago — back up now`;
+      banner.style.display = 'flex';
+    }
+  }
+}
+
+function closeBackupBanner() {
+  const b = document.getElementById('backupBanner');
+  if (b) b.style.display = 'none';
+}
+
+// ════════════════════════════════════
+// ════════════════════════════════════
+// EDIT CUSTOMER
+// ════════════════════════════════════
+function openEditModal(custId) {
+  const cust = customers.find(c => c.id === custId);
+  document.getElementById('editCustId').value = custId;
+  document.getElementById('editName').value = cust.name;
+  document.getElementById('editPhone').value = cust.phone;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+function saveEdit() {
+  const custId = document.getElementById('editCustId').value;
+  const name = document.getElementById('editName').value.trim();
+  const phone = document.getElementById('editPhone').value.trim();
+  if (!name) { toast('⚠ Name cannot be empty'); return; }
+  if (!phone) { toast('⚠ Phone cannot be empty'); return; }
+  const idx = customers.findIndex(c => c.id === custId);
+  if (idx === -1) { toast('⚠ Customer not found'); return; }
+  customers[idx].name = name;
+  customers[idx].phone = phone;
+  save();
+  renderAll();
+  closeEditModal();
+  toast('✅ Customer details updated!');
+}
+
+// ════════════════════════════════════
+// Close modals on overlay click
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+  if (e.target === this) closePaymentModal();
+});
+document.getElementById('waModal').addEventListener('click', function(e) {
+  if (e.target === this) closeWaModal();
+});
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+</script>
+</body>
+</html>

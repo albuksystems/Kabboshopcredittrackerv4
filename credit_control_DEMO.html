@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Credit Control v3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #2C3E50; --success: #27AE60; --warning: #F39C12; --danger: #E74C3C; --info: #3498DB;
+            --light: #ECF0F1; --border: #BDC3C7; --text: #2C3E50; --text-light: #7F8C8D; --bg: #FFFFFF;
+            --bg-secondary: #F8F9FA; --shadow: rgba(44,62,80,0.1);
+        }
+        body {
+            font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: var(--text); line-height: 1.6;
+        }
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-box {
+            background: var(--bg); padding: 40px 30px; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 420px; animation: fadeInUp 0.5s ease;
+        }
+        .login-box h1 { font-size: 28px; font-weight: 700; margin-bottom: 10px; color: var(--primary); text-align: center; }
+        .login-box > p { color: var(--text-light); margin-bottom: 30px; text-align: center; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text); font-size: 14px; }
+        .form-group input, select, textarea {
+            width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px;
+            font-family: 'Outfit', sans-serif; background: white; transition: all 0.3s ease;
+        }
+        .form-group input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--info); box-shadow: 0 0 0 4px rgba(52,152,219,0.1);
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        select {
+            appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px;
+        }
+        .password-toggle {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none;
+            border: none; color: var(--text-light); cursor: pointer; font-size: 20px; padding: 5px;
+        }
+        .input-wrapper { position: relative; }
+        .btn {
+            padding: 16px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; font-family: 'Outfit', sans-serif;
+        }
+        .btn-primary { background: var(--info); color: white; width: 100%; }
+        .btn-primary:hover { background: #2980B9; transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-secondary { background: var(--light); color: var(--text); padding: 10px 16px; font-size: 14px; }
+        .btn-sm { padding: 10px 16px; font-size: 13px; }
+        .btn-xs { padding: 6px 12px; font-size: 12px; }
+        .error-message, .success-message {
+            padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; display: none;
+        }
+        .error-message { background: #FADBD8; color: var(--danger); }
+        .error-message.show, .success-message.show { display: block; animation: fadeIn 0.3s ease; }
+        .success-message { background: #D5F4E6; color: var(--success); }
+        .login-demo {
+            margin-top: 20px; padding: 15px; background: #FFF9E6; border-radius: 10px; border-left: 4px solid var(--warning);
+        }
+        .login-demo p { font-size: 13px; color: var(--text); margin-bottom: 5px; }
+        .app-container { display: none; min-height: 100vh; background: var(--bg-secondary); }
+        .navbar {
+            background: var(--bg); padding: 0 20px; box-shadow: 0 2px 10px var(--shadow);
+            display: flex; justify-content: space-between; align-items: center; height: 60px; position: sticky; top: 0; z-index: 100;
+        }
+        .navbar-brand { font-size: 18px; font-weight: 700; color: var(--primary); }
+        .navbar-actions { display: flex; align-items: center; gap: 10px; }
+        .backup-status { font-size: 11px; color: var(--text-light); display: none; }
+        .backup-status.warning { color: var(--danger); display: block; }
+        .btn-icon-only { padding: 10px; font-size: 18px; }
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); display: flex;
+            justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px var(--shadow); z-index: 100;
+        }
+        .bottom-nav-item {
+            display: flex; flex-direction: column; align-items: center; padding: 8px 16px; cursor: pointer;
+            transition: all 0.3s ease; border-radius: 10px; flex: 1; max-width: 80px;
+        }
+        .bottom-nav-item.active { color: var(--info); }
+        .bottom-nav-icon { font-size: 24px; margin-bottom: 4px; }
+        .bottom-nav-label { font-size: 11px; font-weight: 500; }
+        .content { padding: 20px 15px 80px 15px; }
+        .page-header { margin-bottom: 20px; }
+        .page-header h2 { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+        .page-header p { color: var(--text-light); font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card {
+            background: var(--bg); padding: 20px 15px; border-radius: 15px; box-shadow: 0 4px 15px var(--shadow);
+            border-left: 5px solid; transition: transform 0.3s ease;
+        }
+        .stat-card.full-width { grid-column: 1 / -1; border-left-width: 8px; }
+        .stat-card.debt { border-left-color: var(--danger); }
+        .stat-card.customers { border-left-color: var(--info); }
+        .stat-card.overdue { border-left-color: var(--warning); }
+        .stat-card.collected { border-left-color: var(--success); }
+        .stat-label {
+            font-size: 11px; color: var(--text-light); text-transform: uppercase;
+            letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 24px; font-weight: 700; color: var(--primary); font-family: 'JetBrains Mono', monospace;
+        }
+        .stat-subtext { font-size: 12px; color: var(--text-light); margin-top: 5px; }
+        .card {
+            background: var(--bg); border-radius: 15px; padding: 20px 15px;
+            box-shadow: 0 4px 15px var(--shadow); margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
+        }
+        .card-title { font-size: 18px; font-weight: 600; color: var(--primary); }
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        table thead { background: var(--bg-secondary); }
+        table th {
+            padding: 12px 10px; text-align: left; font-weight: 600; color: var(--text);
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        table td { padding: 12px 10px; border-bottom: 1px solid var(--light); font-size: 13px; }
+        .badge {
+            display: inline-block; padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-success { background: #D5F4E6; color: var(--success); }
+        .badge-danger { background: #FADBD8; color: var(--danger); }
+        .badge-warning { background: #FCF3CF; color: var(--warning); }
+        .badge-info { background: #D6EAF8; color: var(--info); }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--bg); border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid var(--light); display: flex;
+            justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg); z-index: 10;
+        }
+        .modal-title { font-size: 20px; font-weight: 600; color: var(--primary); }
+        .modal-close {
+            background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-light);
+            line-height: 1; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 15px 20px; border-top: 1px solid var(--light); display: flex;
+            justify-content: flex-end; gap: 10px; position: sticky; bottom: 0; background: var(--bg); flex-wrap: wrap;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .search-box { position: relative; margin-bottom: 15px; }
+        .customer-card {
+            background: var(--bg); border-radius: 12px; padding: 15px; box-shadow: 0 2px 10px var(--shadow);
+            margin-bottom: 12px; transition: all 0.3s ease; border-left: 5px solid var(--info);
+        }
+        .customer-card.overdue { border-left-color: var(--danger); }
+        .customer-card.warning { border-left-color: var(--warning); }
+        .customer-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; }
+        .customer-name { font-size: 17px; font-weight: 600; color: var(--primary); }
+        .customer-id { font-size: 12px; color: var(--text-light); font-family: 'JetBrains Mono', monospace; }
+        .customer-debt { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .customer-info { display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; color: var(--text-light); margin-top: 10px; }
+        .customer-notes {
+            background: #FFF9E6; padding: 10px; border-radius: 8px; margin-top: 10px;
+            font-size: 13px; border-left: 3px solid var(--warning);
+        }
+        .aging-indicator { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .aging-badge { padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; }
+        .action-buttons { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-icon { padding: 10px 14px; font-size: 13px; flex: 1; min-width: fit-content; }
+        .credit-limit-warning {
+            background: #FCF3CF; border-left: 4px solid var(--warning); padding: 15px;
+            border-radius: 8px; margin-bottom: 15px; display: none; font-size: 14px;
+        }
+        .credit-limit-warning.show { display: block; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .message-template {
+            background: var(--bg-secondary); padding: 15px; border-radius: 10px; margin-bottom: 15px;
+            cursor: pointer; transition: all 0.3s ease; border-left: 4px solid var(--info);
+        }
+        .message-template:hover { background: var(--light); transform: translateX(5px); }
+        .message-template h4 { font-size: 15px; color: var(--primary); margin-bottom: 8px; }
+        .message-template p { font-size: 13px; color: var(--text-light); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (min-width: 768px) {
+            .bottom-nav { display: none; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+            .form-row { grid-template-columns: 1fr 1fr; }
+            .modal { align-items: center; }
+            .modal-content { border-radius: 20px; max-width: 600px; max-height: 90vh; }
+        }
+        button, a, input, select, textarea { min-height: 44px; }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <h1>🔐 Credit Control</h1>
+            <p>Secure debt management system</p>
+            <div class="error-message" id="loginError">❌ Invalid credentials</div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <div class="login-demo">
+                <p><strong>Demo Login:</strong> demo / demo123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Demo Warning Banner -->
+        <div style="background: linear-gradient(135deg, #F39C12 0%, #E74C3C 100%); color: white; padding: 12px 20px; text-align: center; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+            ⏰ DEMO VERSION - <span id="demoDaysLeft">7</span> Days Left | <span id="demoCustomersLeft">15</span> Customers Available
+            <a href="https://wa.me/254768789382?text=Hi!%20I%20want%20to%20upgrade%20to%20full%20Credit%20Control%20(KSh%201,000)" style="color: white; text-decoration: underline; margin-left: 15px;">Upgrade Now - KSh 1,000</a>
+        </div>
+
+        <nav class="navbar">
+            <div class="navbar-brand">Credit Control</div>
+            <div class="navbar-actions">
+                <div class="backup-status" id="backupStatus">⚠️ Backup now</div>
+                <button class="btn btn-secondary btn-icon-only" onclick="openBackupModal()">💾</button>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+
+        <main class="content">
+            <!-- Dashboard -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <p>Overview of your credit system</p>
+                </div>
+                <div class="stat-card debt full-width">
+                    <div class="stat-label">Total Outstanding Debt</div>
+                    <div class="stat-value" style="font-size: 32px;" id="totalDebt">KSh 0</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card customers">
+                        <div class="stat-label">Active Customers</div>
+                        <div class="stat-value" id="activeCustomers">0</div>
+                    </div>
+                    <div class="stat-card overdue">
+                        <div class="stat-label">Overdue Amount</div>
+                        <div class="stat-value" style="font-size: 20px;" id="overdueAmount">KSh 0</div>
+                        <div class="stat-subtext"><span id="overdueCount">0</span> customers</div>
+                    </div>
+                    <div class="stat-card collected">
+                        <div class="stat-label">Collected This Month</div>
+                        <div class="stat-value" style="font-size: 20px;" id="collectedMonth">KSh 0</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">Debt Aging</h3></div>
+                    <div class="stats-grid">
+                        <div class="stat-card" style="border-left-color: var(--success);">
+                            <div class="stat-label">0-30 Days</div>
+                            <div class="stat-value" id="aging0to30" style="font-size: 20px;">KSh 0</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: var(--warning);">
+                            <div class="stat-label">31-60 Days</div>
+                            <div class="stat-value" id="aging31to60" style="font-size: 20px;">KSh 0</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: var(--danger);">
+                            <div class="stat-label">60+ Days</div>
+                            <div class="stat-value" id="aging60plus" style="font-size: 20px;">KSh 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers -->
+            <div id="customers" class="page">
+                <div class="page-header">
+                    <h2>Customers</h2>
+                    <p>Manage your customer database</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Customer List</h3>
+                        <button class="btn btn-success btn-sm" onclick="openCustomerModal()">+ Add</button>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="customerSearch" placeholder="Search..." onkeyup="filterCustomers()">
+                    </div>
+                    <div id="customersList"></div>
+                </div>
+            </div>
+
+            <!-- Transactions -->
+            <div id="transactions" class="page">
+                <div class="page-header">
+                    <h2>Transactions</h2>
+                    <p>Record credit sales</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Transaction History</h3>
+                        <button class="btn btn-success btn-sm" onclick="openTransactionModal()">+ New</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Balance</th><th>Action</th></tr></thead>
+                            <tbody id="transactionsList"><tr><td colspan="5" style="text-align:center;color:var(--text-light)">No transactions</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments -->
+            <div id="payments" class="page">
+                <div class="page-header">
+                    <h2>Payments</h2>
+                    <p>Record customer payments</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Payment History</h3>
+                        <button class="btn btn-success btn-sm" onclick="openPaymentModal()">+ Record</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Date</th><th>Customer</th><th>Method</th><th>Amount</th></tr></thead>
+                            <tbody id="paymentsList"><tr><td colspan="4" style="text-align:center;color:var(--text-light)">No payments</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div id="reports" class="page">
+                <div class="page-header">
+                    <h2>Reports</h2>
+                    <p>Financial reports and summaries</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 15px;">Generate Reports</h3>
+                    <div class="message-template" onclick="generateOutstandingReport()">
+                        <h4>📊 Outstanding Debts Report</h4>
+                        <p>All customers with outstanding balances</p>
+                    </div>
+                    <div class="message-template" onclick="generateOverdueReport()">
+                        <h4>⏰ Overdue Customers Report</h4>
+                        <p>Customers with overdue payments</p>
+                    </div>
+                    <div class="message-template" onclick="generateCustomerSummary()">
+                        <h4>👥 Customer-wise Summary</h4>
+                        <p>Complete debt breakdown per customer</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <div class="bottom-nav-item active" onclick="showPage('dashboard')">
+                <div class="bottom-nav-icon">📊</div>
+                <div class="bottom-nav-label">Dashboard</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showPage('customers')">
+                <div class="bottom-nav-icon">👥</div>
+                <div class="bottom-nav-label">Customers</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showPage('transactions')">
+                <div class="bottom-nav-icon">📋</div>
+                <div class="bottom-nav-label">Sales</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showPage('payments')">
+                <div class="bottom-nav-icon">💰</div>
+                <div class="bottom-nav-label">Payments</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showPage('reports')">
+                <div class="bottom-nav-icon">📈</div>
+                <div class="bottom-nav-label">Reports</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showPage('settings')">
+                <div class="bottom-nav-icon">⚙️</div>
+                <div class="bottom-nav-label">Settings</div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- Settings Page -->
+        <div id="settings" class="page">
+            <div class="page-header">
+                <h2>Settings</h2>
+                <p>Manage your shop preferences</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Shop Information</h3>
+                </div>
+                
+                <div class="list-item">
+                    <div style="width: 100%;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Shop Name</label>
+                        <input type="text" id="directShopNameInput" placeholder="Enter your shop name" style="width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 16px; font-family: 'Outfit', sans-serif;" oninput="updateShopNameDirect(this.value)">
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div style="width: 100%;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Currency</label>
+                        <select id="directCurrencySelect" style="width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 16px; font-family: 'Outfit', sans-serif;" onchange="updateCurrencyDirect(this.value)">
+                            <option value="KSh">KSh (Kenyan Shilling)</option>
+                            <option value="USD">$ (US Dollar)</option>
+                            <option value="EUR">€ (Euro)</option>
+                            <option value="GBP">£ (British Pound)</option>
+                            <option value="TZS">TZS (Tanzanian Shilling)</option>
+                            <option value="UGX">UGX (Ugandan Shilling)</option>
+                            <option value="ZAR">ZAR (South African Rand)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Security</h3>
+                </div>
+                
+                <div class="list-item" onclick="openChangePinModal()">
+                    <div>
+                        <div class="list-item-title">Change PIN</div>
+                        <div class="list-item-meta">Update your 4-digit PIN</div>
+                    </div>
+                    <div style="color: var(--text-light);">›</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Data & Backup</h3>
+                </div>
+                
+                <div class="list-item" onclick="openBackupModal()">
+                    <div>
+                        <div class="list-item-title">Backup & Restore</div>
+                        <div class="list-item-meta">Last backup: <span id="settingsLastBackup">Never</span></div>
+                    </div>
+                    <div style="color: var(--text-light);">›</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">About</h3>
+                </div>
+                
+                <div class="list-item">
+                    <div>
+                        <div class="list-item-title">Version</div>
+                        <div class="list-item-meta">3.2.0</div>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div>
+                        <div class="list-item-title">Created by</div>
+                        <div class="list-item-meta">© 2026 Albuk Global</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Modals -->
+    <!-- Backup Modal -->
+    <div class="modal" id="backupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">💾 Backup & Restore</h3>
+                <button class="modal-close" onclick="closeModal('backupModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="success-message" id="backupSuccess">✅ Backup successful!</div>
+                <p style="margin-bottom: 15px; color: var(--text-light); font-size: 14px;">
+                    <strong>Last backup:</strong> <span id="lastBackupDate">Never</span>
+                </p>
+                <div style="margin-bottom: 20px; padding: 15px; background: #FFF9E6; border-radius: 10px; border-left: 4px solid var(--warning);">
+                    <strong>⚠️ Important:</strong>
+                    <p style="font-size: 13px; margin-top: 8px;">Backup weekly to WhatsApp or email to prevent data loss.</p>
+                </div>
+                <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="exportBackup()">📥 Export Backup</button>
+                <button class="btn btn-info" style="width: 100%; margin-bottom: 10px;" onclick="shareBackupWhatsApp()">💬 Share via WhatsApp</button>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importBackup(event)">
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div class="modal" id="customerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customerModalTitle">Add Customer</h3>
+                <button class="modal-close" onclick="closeModal('customerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Name *</label>
+                            <input type="text" id="customerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="customerPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="customerAddress">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Credit Limit (KSh)</label>
+                            <input type="number" id="customerCreditLimit" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>ID Number</label>
+                            <input type="text" id="customerIdNumber">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="customerNotes" placeholder="e.g., Pays end of month"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('customerModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveCustomer()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">New Transaction</h3>
+                <button class="modal-close" onclick="closeModal('transactionModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="credit-limit-warning" id="creditLimitWarning">
+                    <strong>⚠️ Credit Limit Warning</strong>
+                    <p id="creditLimitMessage"></p>
+                </div>
+                <form id="transactionForm">
+                    <div class="form-group">
+                        <label>Search Customer</label>
+                        <input type="text" id="transactionCustomerSearch" placeholder="🔍 Type name, phone, or ID to filter..." oninput="filterTransactionCustomers()">
+                    </div>
+                    <div class="form-group">
+                        <label>Customer *</label>
+                        <select id="transactionCustomer" required onchange="checkCreditLimit()">
+                            <option value="">Select Customer</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="transactionDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date *</label>
+                            <input type="date" id="transactionDueDate" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="transactionDescription" required placeholder="e.g., Maize flour (10 bags @ KSh 1,500)"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Taken By *</label>
+                        <input type="text" id="transactionTakenBy" required placeholder="Name of person who took items">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact (Optional)</label>
+                        <input type="tel" id="transactionTakenByPhone" placeholder="Phone number">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (KSh) *</label>
+                        <input type="number" id="transactionAmount" required min="0" step="0.01" onchange="checkCreditLimit()">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('transactionModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveTransaction()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Record Payment</h3>
+                <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label>Search Customer</label>
+                        <input type="text" id="paymentCustomerSearch" placeholder="🔍 Type name, phone, or ID to filter..." oninput="filterPaymentCustomers()">
+                    </div>
+                    <div class="form-group">
+                        <label>Customer *</label>
+                        <select id="paymentCustomer" required onchange="loadCustomerInvoices()">
+                            <option value="">Select Customer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Invoice (Optional)</label>
+                        <select id="paymentInvoice">
+                            <option value="">Apply to oldest debt first</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="paymentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Method *</label>
+                            <select id="paymentMethod" required>
+                                <option value="">Select Method</option>
+                                <option value="Cash">Cash</option>
+                                <option value="M-Pesa">M-Pesa</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (KSh) *</label>
+                        <input type="number" id="paymentAmount" required min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Reference Number</label>
+                        <input type="text" id="paymentReference" placeholder="e.g., M-Pesa code">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+                <button class="btn btn-success" onclick="savePayment()">Record</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Modal -->
+    <div class="modal" id="whatsappModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">💬 WhatsApp Messages</h3>
+                <button class="modal-close" onclick="closeModal('whatsappModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; font-size: 14px; color: var(--text-light);">
+                    Send message to <strong id="waCustomerName"></strong>
+                </p>
+                <div class="message-template" onclick="sendBalanceUpdate()">
+                    <h4>💰 Balance Update</h4>
+                    <p>Send current balance and due date</p>
+                </div>
+                <div class="message-template" onclick="sendFriendlyReminder()">
+                    <h4>😊 Friendly Reminder</h4>
+                    <p>Polite payment reminder</p>
+                </div>
+                <div class="message-template" onclick="sendFirmReminder()">
+                    <h4>⚠️ Firm Reminder</h4>
+                    <p>For overdue payments</p>
+                </div>
+                <div class="message-template" onclick="sendCustomerStatement()">
+                    <h4>📄 Send Statement</h4>
+                    <p>Full transaction history</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statement Modal -->
+    <div class="modal" id="statementModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Customer Statement</h3>
+                <button class="modal-close" onclick="closeModal('statementModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="statementContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('statementModal')">Close</button>
+                <button class="btn btn-info" onclick="shareStatement()">Share</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Name Modal -->
+    <div class="modal" id="shopNameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Shop Name</h3>
+                <button class="modal-close" onclick="closeModal('shopNameModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="shopNameForm">
+                    <div class="form-group">
+                        <label>Shop Name *</label>
+                        <input type="text" id="shopNameInput" required placeholder="Enter your shop name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('shopNameModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveShopName()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currency Modal -->
+    <div class="modal" id="currencyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Currency</h3>
+                <button class="modal-close" onclick="closeModal('currencyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="currencyForm">
+                    <div class="form-group">
+                        <label>Currency *</label>
+                        <select id="currencySelect" required>
+                            <option value="KSh">KSh (Kenyan Shilling)</option>
+                            <option value="USD">$ (US Dollar)</option>
+                            <option value="EUR">€ (Euro)</option>
+                            <option value="GBP">£ (British Pound)</option>
+                            <option value="TZS">TZS (Tanzanian Shilling)</option>
+                            <option value="UGX">UGX (Ugandan Shilling)</option>
+                            <option value="ZAR">ZAR (South African Rand)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('currencyModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveCurrency()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change PIN Modal -->
+    <div class="modal" id="changePinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Change PIN</h3>
+                <button class="modal-close" onclick="closeModal('changePinModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="error-message" id="pinChangeError"></div>
+                <form id="changePinForm">
+                    <div class="form-group">
+                        <label>Current PIN *</label>
+                        <input type="password" id="currentPin" required maxlength="4" placeholder="Enter current 4-digit PIN">
+                    </div>
+                    <div class="form-group">
+                        <label>New PIN *</label>
+                        <input type="password" id="newPin" required maxlength="4" placeholder="Enter new 4-digit PIN">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New PIN *</label>
+                        <input type="password" id="confirmPin" required maxlength="4" placeholder="Re-enter new PIN">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('changePinModal')">Cancel</button>
+                <button class="btn btn-success" onclick="changePin()">Change PIN</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // ============================================
+        // CREDIT CONTROL SYSTEM v3.0
+        // Complete JavaScript Implementation
+        // ============================================
+
+        // Global Variables
+        let currentUser = null;
+        let customers = [];
+        let transactions = [];
+        let payments = [];
+        let appSettings = { shopName: "My Shop", currency: "KSh", lastBackup: null };
+        let currentCustomerForMessage = null;
+
+        // DEMO MODE SETTINGS
+        const DEMO_MODE = true;
+        const DEMO_DAYS = 7;
+        const MAX_CUSTOMERS = 15;
+        const DEMO_STORAGE_KEY = 'creditControlDemoInstall';
+        
+        // Initialize demo install date
+        if (!localStorage.getItem(DEMO_STORAGE_KEY)) {
+            localStorage.setItem(DEMO_STORAGE_KEY, new Date().toISOString());
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        // Demo Mode Functions
+        function getDaysRemaining() {
+            const installDate = new Date(localStorage.getItem(DEMO_STORAGE_KEY));
+            const now = new Date();
+            const daysPassed = Math.floor((now - installDate) / (1000 * 60 * 60 * 24));
+            return Math.max(0, DEMO_DAYS - daysPassed);
+        }
+
+        function checkDemoExpiry() {
+            if (!DEMO_MODE) return true;
+            
+            const daysLeft = getDaysRemaining();
+            if (daysLeft === 0) {
+                alert('⏰ DEMO EXPIRED!\n\nYour 7-day trial has ended.\n\n✅ Upgrade to full version: KSh 1,000\n\n💾 Your data is safe - it will be restored when you upgrade.\n\nContact: +254 768 789 382');
+                window.location.href = 'https://wa.me/254768789382?text=Hi!%20My%20Credit%20Control%20demo%20expired.%20I%20want%20to%20buy%20the%20full%20version%20(KSh%201,000)';
+                return false;
+            }
+            return true;
+        }
+
+        function checkCustomerLimit() {
+            if (!DEMO_MODE) return true;
+            
+            if (customers.length >= MAX_CUSTOMERS) {
+                alert(`🔒 DEMO LIMIT REACHED!\n\nMax ${MAX_CUSTOMERS} customers in demo version.\n\n✅ Upgrade for UNLIMITED customers\n💰 Only KSh 1,000 - Pay once, use forever!\n\nContact: +254 768 789 382`);
+                return false;
+            }
+            return true;
+        }
+
+        function showDemoUpgradePrompt(feature) {
+            alert(`🔒 ${feature} - PREMIUM FEATURE\n\nThis feature is locked in demo version.\n\n✅ Upgrade to unlock:\n• WhatsApp reminders\n• Backup & restore\n• Unlimited customers\n• Remove all limits\n\n💰 KSh 1,000 one-time payment\n📱 Contact: +254 768 789 382`);
+        }
+
+        function updateDemoBanner() {
+            const daysLeftEl = document.getElementById('demoDaysLeft');
+            const customersLeftEl = document.getElementById('demoCustomersLeft');
+            
+            if (daysLeftEl) {
+                daysLeftEl.textContent = getDaysRemaining();
+            }
+            if (customersLeftEl) {
+                customersLeftEl.textContent = MAX_CUSTOMERS - customers.length;
+            }
+        }
+
+        function formatCurrency(amount) {
+            return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const btn = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        // ============================================
+        // DATA PERSISTENCE (Enhanced with Backup)
+        // ============================================
+
+        function saveToStorage() {
+            try {
+                const data = {
+                    customers, transactions, payments, appSettings,
+                    timestamp: new Date().toISOString()
+                };
+                // Primary storage
+                localStorage.setItem('creditControl_data', JSON.stringify(data));
+                // Backup storage (redundant)
+                localStorage.setItem('creditControl_backup', JSON.stringify(data));
+                console.log('✓ Data saved:', data.timestamp);
+                return true;
+            } catch (error) {
+                console.error('Save failed:', error);
+                alert('⚠️ Failed to save! Export backup now!');
+                return false;
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                let data = localStorage.getItem('creditControl_data');
+                if (!data) data = localStorage.getItem('creditControl_backup');
+                
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    customers = parsed.customers || [];
+                    transactions = parsed.transactions || [];
+                    payments = parsed.payments || [];
+                    appSettings = parsed.appSettings || { shopName: "My Shop", lastBackup: null };
+                    console.log('✓ Data loaded');
+                }
+                
+                if (customers.length === 0) {
+                    initDemoData();
+                } else {
+                    refreshAll();
+            initializeSettingsDisplay();
+                    initializeSettingsDisplay();
+                }
+            } catch (error) {
+                console.error('Load failed:', error);
+                initDemoData();
+            }
+        }
+
+        function initDemoData() {
+            customers = [
+                { id: 'C001', name: 'John Mwangi', phone: '0712345678', address: 'Nairobi, Westlands', 
+                  creditLimit: 50000, idNumber: '12345678', notes: 'Pays end of month.', createdDate: '2026-01-15' },
+                { id: 'C002', name: 'Grace Akinyi', phone: '0723456789', address: 'Kisumu, Milimani', 
+                  creditLimit: 30000, idNumber: '23456789', notes: 'School fees delays in January.', createdDate: '2026-01-20' },
+                { id: 'C003', name: 'Peter Kamau', phone: '0734567890', address: 'Mombasa, Nyali', 
+                  creditLimit: 75000, idNumber: '34567890', notes: 'Always pays on time.', createdDate: '2026-02-01' }
+            ];
+            transactions = [
+                { id: 'INV-001', customerId: 'C001', date: '2026-02-01', dueDate: '2026-02-28', 
+                  description: 'Maize flour (10 bags @ KSh 1,500)', amount: 15000, 
+                  takenBy: 'John himself', takenByPhone: '0712345678' },
+                { id: 'INV-002', customerId: 'C001', date: '2026-02-05', dueDate: '2026-02-28', 
+                  description: 'Cooking oil (5 jerrycans @ KSh 2,000)', amount: 10000, 
+                  takenBy: 'John himself', takenByPhone: '' },
+                { id: 'INV-003', customerId: 'C002', date: '2025-12-20', dueDate: '2026-01-20', 
+                  description: 'Rice (20 bags @ KSh 800)', amount: 16000, 
+                  takenBy: 'Grace Akinyi', takenByPhone: '0723456789' },
+                { id: 'INV-004', customerId: 'C003', date: '2026-02-06', dueDate: '2026-03-06', 
+                  description: 'Mixed groceries bulk order', amount: 45000, 
+                  takenBy: 'Peter Kamau', takenByPhone: '0734567890' }
+            ];
+            payments = [
+                { id: 'RCP-001', customerId: 'C001', invoiceId: 'INV-001', date: '2026-02-03', 
+                  method: 'M-Pesa', amount: 10000, reference: 'QBK7HMPT2X' },
+                { id: 'RCP-002', customerId: 'C002', invoiceId: 'INV-003', date: '2026-01-25', 
+                  method: 'Cash', amount: 8000, reference: '' }
+            ];
+            saveToStorage();
+            refreshAll();
+            initializeSettingsDisplay();
+        }
+
+        function refreshAll() {
+            refreshDashboard();
+            renderCustomers();
+            renderTransactions();
+            renderPayments();
+            updateBackupStatus();
+        }
+
+        // ============================================
+        // BACKUP MANAGEMENT
+        // ============================================
+
+        function updateBackupStatus() {
+            const statusEl = document.getElementById('backupStatus');
+            const lastBackupEl = document.getElementById('lastBackupDate');
+            
+            if (appSettings.lastBackup) {
+                const lastDate = new Date(appSettings.lastBackup);
+                const daysSince = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                
+                if (lastBackupEl) {
+                    lastBackupEl.textContent = daysSince === 0 ? 'Today' : `${daysSince} days ago`;
+                }
+                
+                if (daysSince > 7) {
+                    statusEl.classList.add('warning');
+                    statusEl.textContent = `⚠️ ${daysSince}d ago`;
+                } else {
+                    statusEl.classList.remove('warning');
+                }
+            } else {
+                if (lastBackupEl) lastBackupEl.textContent = 'Never';
+                statusEl.classList.add('warning');
+                statusEl.textContent = '⚠️ No backup';
+            }
+        }
+
+        function openBackupModal() {
+            document.getElementById('backupModal').classList.add('active');
+            updateBackupStatus();
+        }
+
+        function exportBackup() {
+            if (DEMO_MODE) {
+                showDemoUpgradePrompt('Backup & Restore');
+                return;
+            }
+            const data = {
+                customers, transactions, payments, appSettings,
+                exportDate: new Date().toISOString(),
+                version: '3.0'
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = `credit_backup_${dateStr}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            appSettings.lastBackup = new Date().toISOString();
+            saveToStorage();
+            updateBackupStatus();
+            
+            const successMsg = document.getElementById('backupSuccess');
+            successMsg.classList.add('show');
+            setTimeout(() => successMsg.classList.remove('show'), 3000);
+        }
+
+        function shareBackupWhatsApp() {
+            if (DEMO_MODE) {
+                showDemoUpgradePrompt('WhatsApp Backup');
+                return;
+            }
+            const data = { customers, transactions, payments, appSettings, exportDate: new Date().toISOString() };
+            const text = `Credit Control Backup - ${new Date().toLocaleDateString()}\n\nCustomers: ${customers.length}\nTransactions: ${transactions.length}\nPayments: ${payments.length}\n\nBackup data:\n${JSON.stringify(data)}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+            
+            appSettings.lastBackup = new Date().toISOString();
+            saveToStorage();
+            updateBackupStatus();
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm('⚠️ Replace all current data? Make sure you backed up first!')) {
+                        customers = data.customers || [];
+                        transactions = data.transactions || [];
+                        payments = data.payments || [];
+                        appSettings = data.appSettings || { shopName: "My Shop", lastBackup: null };
+                        saveToStorage();
+                        refreshAll();
+            initializeSettingsDisplay();
+                    initializeSettingsDisplay();
+                        alert('✅ Backup restored!');
+                        closeModal('backupModal');
+                    }
+                } catch (error) {
+                    alert('❌ Invalid backup file!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (username === 'demo' && password === 'demo123') {
+                // Check demo expiry first
+                if (!checkDemoExpiry()) return;
+                
+                currentUser = username;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('loginError').classList.remove('show');
+                loadFromStorage();
+                
+                // Initialize settings fields
+                setTimeout(() => {
+                    if (document.getElementById('directShopNameInput')) {
+                        document.getElementById('directShopNameInput').value = appSettings.shopName;
+                    }
+                    if (document.getElementById('directCurrencySelect')) {
+                        document.getElementById('directCurrencySelect').value = appSettings.currency;
+                    }
+                }, 100);
+            } else {
+                document.getElementById('loginError').classList.add('show');
+                if (navigator.vibrate) navigator.vibrate(200);
+            }
+        });
+
+        function logout() {
+            if (confirm('Logout? Make sure data is backed up!')) {
+                currentUser = null;
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageName).classList.add('active');
+            document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+            event.target.closest('.bottom-nav-item').classList.add('active');
+        }
+
+        function updateShopNameDirect(value) {
+            appSettings.shopName = value;
+            saveData();
+        }
+
+        function updateCurrencyDirect(value) {
+            appSettings.currency = value;
+            saveData();
+            renderPages();
+        }
+
+        function openShopNameModal() {
+            document.getElementById('shopNameInput').value = appSettings.shopName;
+            openModal('shopNameModal');
+        }
+
+        function saveShopName() {
+            const newName = document.getElementById('shopNameInput').value.trim();
+            if (newName) {
+                appSettings.shopName = newName;
+                document.getElementById('displayShopName').textContent = newName;
+                saveData();
+                closeModal('shopNameModal');
+            }
+        }
+
+        function openCurrencyModal() {
+            document.getElementById('currencySelect').value = appSettings.currency;
+            openModal('currencyModal');
+        }
+
+        function saveCurrency() {
+            const newCurrency = document.getElementById('currencySelect').value;
+            appSettings.currency = newCurrency;
+            const currencyNames = {
+                'KSh': 'KSh (Kenyan Shilling)',
+                'USD': '$ (US Dollar)',
+                'EUR': '€ (Euro)',
+                'GBP': '£ (British Pound)',
+                'TZS': 'TZS (Tanzanian Shilling)',
+                'UGX': 'UGX (Ugandan Shilling)',
+                'ZAR': 'ZAR (South African Rand)'
+            };
+            document.getElementById('displayCurrency').textContent = currencyNames[newCurrency];
+            saveData();
+            closeModal('currencyModal');
+            renderPages();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ============================================
+        // CALCULATIONS
+        // ============================================
+
+        function calculateCustomerDebt(customerId) {
+            const charges = transactions.filter(t => t.customerId === customerId).reduce((sum, t) => sum + t.amount, 0);
+            const paid = payments.filter(p => p.customerId === customerId).reduce((sum, p) => sum + p.amount, 0);
+            return charges - paid;
+        }
+
+        function calculateTransactionBalance(transactionId) {
+            const transaction = transactions.find(t => t.id === transactionId);
+            if (!transaction) return 0;
+            const paid = payments.filter(p => p.invoiceId === transactionId).reduce((sum, p) => sum + p.amount, 0);
+            return transaction.amount - paid;
+        }
+
+        function calculateDebtAging(customerId) {
+            const today = new Date();
+            const aging = { current: 0, aging30: 0, aging60: 0 };
+            transactions.filter(t => t.customerId === customerId).forEach(trans => {
+                const balance = calculateTransactionBalance(trans.id);
+                if (balance > 0) {
+                    const daysOld = Math.floor((today - new Date(trans.date)) / (1000 * 60 * 60 * 24));
+                    if (daysOld <= 30) aging.current += balance;
+                    else if (daysOld <= 60) aging.aging30 += balance;
+                    else aging.aging60 += balance;
+                }
+            });
+            return aging;
+        }
+
+        function hasOverdueDebts(customerId) {
+            const today = new Date();
+            return transactions.filter(t => t.customerId === customerId).some(t => {
+                const balance = calculateTransactionBalance(t.id);
+                return balance > 0 && new Date(t.dueDate) < today;
+            });
+        }
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
+
+        function refreshDashboard() {
+            // Update demo banner
+            updateDemoBanner();
+            
+            const totalDebt = customers.reduce((sum, c) => sum + calculateCustomerDebt(c.id), 0);
+            document.getElementById('totalDebt').textContent = 'KSh ' + formatCurrency(totalDebt);
+
+            const activeCount = customers.filter(c => calculateCustomerDebt(c.id) > 0).length;
+            document.getElementById('activeCustomers').textContent = activeCount;
+
+            let overdueAmount = 0, overdueCount = 0;
+            const today = new Date();
+            customers.forEach(customer => {
+                if (hasOverdueDebts(customer.id)) {
+                    overdueCount++;
+                    transactions.filter(t => t.customerId === customer.id).forEach(t => {
+                        const balance = calculateTransactionBalance(t.id);
+                        if (balance > 0 && new Date(t.dueDate) < today) overdueAmount += balance;
+                    });
+                }
+            });
+            document.getElementById('overdueAmount').textContent = 'KSh ' + formatCurrency(overdueAmount);
+            document.getElementById('overdueCount').textContent = overdueCount;
+
+            const thisMonth = new Date().toISOString().slice(0, 7);
+            const collectedMonth = payments.filter(p => p.date.startsWith(thisMonth)).reduce((sum, p) => sum + p.amount, 0);
+            document.getElementById('collectedMonth').textContent = 'KSh ' + formatCurrency(collectedMonth);
+
+            let aging0to30 = 0, aging31to60 = 0, aging60plus = 0;
+            customers.forEach(c => {
+                const aging = calculateDebtAging(c.id);
+                aging0to30 += aging.current;
+                aging31to60 += aging.aging30;
+                aging60plus += aging.aging60;
+            });
+            document.getElementById('aging0to30').textContent = 'KSh ' + formatCurrency(aging0to30);
+            document.getElementById('aging31to60').textContent = 'KSh ' + formatCurrency(aging31to60);
+            document.getElementById('aging60plus').textContent = 'KSh ' + formatCurrency(aging60plus);
+        }
+
+        // ============================================
+        // CUSTOMER MANAGEMENT
+        // ============================================
+
+        function openCustomerModal(customerId = null) {
+            document.getElementById('customerModal').classList.add('active');
+            if (customerId) {
+                const customer = customers.find(c => c.id === customerId);
+                document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+                document.getElementById('customerName').value = customer.name;
+                document.getElementById('customerPhone').value = customer.phone;
+                document.getElementById('customerAddress').value = customer.address;
+                document.getElementById('customerCreditLimit').value = customer.creditLimit;
+                document.getElementById('customerIdNumber').value = customer.idNumber;
+                document.getElementById('customerNotes').value = customer.notes;
+                document.getElementById('customerForm').dataset.editId = customerId;
+            } else {
+                document.getElementById('customerModalTitle').textContent = 'Add Customer';
+                document.getElementById('customerForm').reset();
+                delete document.getElementById('customerForm').dataset.editId;
+            }
+        }
+
+        function saveCustomer() {
+            // Check demo expiry
+            if (!checkDemoExpiry()) return;
+            
+            const form = document.getElementById('customerForm');
+            const editId = form.dataset.editId;
+            
+            // Check customer limit for new customers only
+            if (!editId && !checkCustomerLimit()) return;
+            
+            const customer = {
+                id: editId || 'C' + String(customers.length + 1).padStart(3, '0'),
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                address: document.getElementById('customerAddress').value,
+                creditLimit: parseFloat(document.getElementById('customerCreditLimit').value) || 0,
+                idNumber: document.getElementById('customerIdNumber').value,
+                notes: document.getElementById('customerNotes').value,
+                createdDate: editId ? customers.find(c => c.id === editId).createdDate : new Date().toISOString().split('T')[0]
+            };
+            if (editId) {
+                const index = customers.findIndex(c => c.id === editId);
+                customers[index] = customer;
+            } else {
+                customers.push(customer);
+            }
+            if (saveToStorage()) {
+                renderCustomers();
+                closeModal('customerModal');
+                refreshDashboard();
+            }
+        }
+
+        function renderCustomers() {
+            const container = document.getElementById('customersList');
+            if (customers.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 40px;">No customers yet.</p>';
+                return;
+            }
+            container.innerHTML = customers.map(customer => {
+                const debt = calculateCustomerDebt(customer.id);
+                const aging = calculateDebtAging(customer.id);
+                const isOverdue = hasOverdueDebts(customer.id);
+                const nearLimit = customer.creditLimit > 0 && debt >= customer.creditLimit * 0.8;
+                let cardClass = 'customer-card';
+                if (isOverdue) cardClass += ' overdue';
+                else if (nearLimit) cardClass += ' warning';
+                return `
+                    <div class="${cardClass}">
+                        <div class="customer-card-header">
+                            <div>
+                                <div class="customer-name">${customer.name}</div>
+                                <div class="customer-id">${customer.id} • ${customer.phone}</div>
+                            </div>
+                            <div class="customer-debt" style="color: ${debt > 0 ? 'var(--danger)' : 'var(--success)'}">
+                                KSh ${formatCurrency(debt)}
+                            </div>
+                        </div>
+                        <div class="customer-info">
+                            <span>📍 ${customer.address || 'No address'}</span>
+                            <span>💳 Limit: KSh ${formatCurrency(customer.creditLimit)}</span>
+                        </div>
+                        ${customer.notes ? `<div class="customer-notes">📝 ${customer.notes}</div>` : ''}
+                        ${debt > 0 ? `
+                            <div class="aging-indicator">
+                                ${aging.current > 0 ? `<span class="aging-badge badge-success">0-30d: KSh ${formatCurrency(aging.current)}</span>` : ''}
+                                ${aging.aging30 > 0 ? `<span class="aging-badge badge-warning">31-60d: KSh ${formatCurrency(aging.aging30)}</span>` : ''}
+                                ${aging.aging60 > 0 ? `<span class="aging-badge badge-danger">60+d: KSh ${formatCurrency(aging.aging60)}</span>` : ''}
+                            </div>
+                        ` : ''}
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-warning btn-icon" onclick="openCustomerModal('${customer.id}')">Edit</button>
+                            <button class="btn btn-sm btn-info btn-icon" onclick="openWhatsAppModal('${customer.id}')">💬 Message</button>
+                            <button class="btn btn-sm btn-success btn-icon" onclick="viewCustomerStatement('${customer.id}')">Statement</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterCustomers() {
+            const search = document.getElementById('customerSearch').value.toLowerCase();
+            const filtered = customers.filter(c => 
+                c.name.toLowerCase().includes(search) || c.phone.includes(search) || c.id.toLowerCase().includes(search)
+            );
+            const container = document.getElementById('customersList');
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 40px;">No customers found.</p>';
+                return;
+            }
+            container.innerHTML = filtered.map(customer => {
+                const debt = calculateCustomerDebt(customer.id);
+                const aging = calculateDebtAging(customer.id);
+                const isOverdue = hasOverdueDebts(customer.id);
+                const nearLimit = customer.creditLimit > 0 && debt >= customer.creditLimit * 0.8;
+                let cardClass = 'customer-card';
+                if (isOverdue) cardClass += ' overdue';
+                else if (nearLimit) cardClass += ' warning';
+                return `
+                    <div class="${cardClass}">
+                        <div class="customer-card-header">
+                            <div>
+                                <div class="customer-name">${customer.name}</div>
+                                <div class="customer-id">${customer.id} • ${customer.phone}</div>
+                            </div>
+                            <div class="customer-debt" style="color: ${debt > 0 ? 'var(--danger)' : 'var(--success)'}">
+                                KSh ${formatCurrency(debt)}
+                            </div>
+                        </div>
+                        <div class="customer-info">
+                            <span>📍 ${customer.address || 'No address'}</span>
+                            <span>💳 Limit: KSh ${formatCurrency(customer.creditLimit)}</span>
+                        </div>
+                        ${customer.notes ? `<div class="customer-notes">📝 ${customer.notes}</div>` : ''}
+                        ${debt > 0 ? `
+                            <div class="aging-indicator">
+                                ${aging.current > 0 ? `<span class="aging-badge badge-success">0-30d: KSh ${formatCurrency(aging.current)}</span>` : ''}
+                                ${aging.aging30 > 0 ? `<span class="aging-badge badge-warning">31-60d: KSh ${formatCurrency(aging.aging30)}</span>` : ''}
+                                ${aging.aging60 > 0 ? `<span class="aging-badge badge-danger">60+d: KSh ${formatCurrency(aging.aging60)}</span>` : ''}
+                            </div>
+                        ` : ''}
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-warning btn-icon" onclick="openCustomerModal('${customer.id}')">Edit</button>
+                            <button class="btn btn-sm btn-info btn-icon" onclick="openWhatsAppModal('${customer.id}')">💬 Message</button>
+                            <button class="btn btn-sm btn-success btn-icon" onclick="viewCustomerStatement('${customer.id}')">Statement</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // TRANSACTION MANAGEMENT
+        // ============================================
+
+        function openTransactionModal() {
+            document.getElementById('transactionModal').classList.add('active');
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('transactionDueDate').valueAsDate = dueDate;
+            
+            // Clear search and populate all customers
+            document.getElementById('transactionCustomerSearch').value = '';
+            populateTransactionCustomers();
+        }
+
+        function populateTransactionCustomers(searchTerm = '') {
+            const select = document.getElementById('transactionCustomer');
+            select.innerHTML = '<option value="">Select Customer</option>';
+            
+            // Filter customers based on search term
+            const filtered = customers.filter(c => {
+                if (!searchTerm) return true;
+                const search = searchTerm.toLowerCase();
+                return c.name.toLowerCase().includes(search) ||
+                       c.phone.includes(search) ||
+                       c.id.toLowerCase().includes(search);
+            });
+            
+            filtered.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.name} (${c.id})</option>`;
+            });
+        }
+
+        function filterTransactionCustomers() {
+            const searchTerm = document.getElementById('transactionCustomerSearch').value;
+            populateTransactionCustomers(searchTerm);
+        }
+
+        function checkCreditLimit() {
+            const customerId = document.getElementById('transactionCustomer').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value) || 0;
+            if (!customerId) return;
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer || customer.creditLimit === 0) {
+                document.getElementById('creditLimitWarning').classList.remove('show');
+                return;
+            }
+            const currentDebt = calculateCustomerDebt(customerId);
+            const newTotal = currentDebt + amount;
+            if (newTotal > customer.creditLimit) {
+                document.getElementById('creditLimitMessage').textContent = 
+                    `Will exceed limit. Current: KSh ${formatCurrency(currentDebt)}, Limit: KSh ${formatCurrency(customer.creditLimit)}`;
+                document.getElementById('creditLimitWarning').classList.add('show');
+            } else if (newTotal > customer.creditLimit * 0.8) {
+                document.getElementById('creditLimitMessage').textContent = 
+                    `Approaching limit (${Math.round(newTotal/customer.creditLimit*100)}% used)`;
+                document.getElementById('creditLimitWarning').classList.add('show');
+            } else {
+                document.getElementById('creditLimitWarning').classList.remove('show');
+            }
+        }
+
+        function saveTransaction() {
+            const transaction = {
+                id: 'INV-' + String(transactions.length + 1).padStart(3, '0'),
+                customerId: document.getElementById('transactionCustomer').value,
+                date: document.getElementById('transactionDate').value,
+                dueDate: document.getElementById('transactionDueDate').value,
+                description: document.getElementById('transactionDescription').value,
+                amount: parseFloat(document.getElementById('transactionAmount').value),
+                takenBy: document.getElementById('transactionTakenBy').value,
+                takenByPhone: document.getElementById('transactionTakenByPhone').value || ''
+            };
+            transactions.push(transaction);
+            if (saveToStorage()) {
+                renderTransactions();
+                closeModal('transactionModal');
+                refreshAll();
+            initializeSettingsDisplay();
+            }
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionsList');
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-light);">No transactions</td></tr>';
+                return;
+            }
+            tbody.innerHTML = transactions.slice().reverse().map(trans => {
+                const customer = customers.find(c => c.id === trans.customerId);
+                const balance = calculateTransactionBalance(trans.id);
+                return `
+                    <tr>
+                        <td>${formatDate(trans.date)}</td>
+                        <td>${customer ? customer.name : 'Unknown'}</td>
+                        <td><strong>KSh ${formatCurrency(trans.amount)}</strong></td>
+                        <td><strong>KSh ${formatCurrency(balance)}</strong></td>
+                        <td>
+                            ${balance > 0 ? `<button class="btn btn-xs btn-success" onclick="quickPayment('${trans.customerId}', '${trans.id}')">Pay</button>` : '<span class="badge badge-success">Paid</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // PAYMENT MANAGEMENT
+        // ============================================
+
+        function openPaymentModal() {
+            document.getElementById('paymentModal').classList.add('active');
+            document.getElementById('paymentForm').reset();
+            document.getElementById('paymentDate').valueAsDate = new Date();
+            
+            // Clear search and populate all customers
+            document.getElementById('paymentCustomerSearch').value = '';
+            populatePaymentCustomers();
+        }
+
+        function populatePaymentCustomers(searchTerm = '') {
+            const select = document.getElementById('paymentCustomer');
+            select.innerHTML = '<option value="">Select Customer</option>';
+            
+            // Filter customers with debt based on search term
+            const filtered = customers.filter(c => {
+                const debt = calculateCustomerDebt(c.id);
+                if (debt <= 0) return false;
+                
+                if (!searchTerm) return true;
+                const search = searchTerm.toLowerCase();
+                return c.name.toLowerCase().includes(search) ||
+                       c.phone.includes(search) ||
+                       c.id.toLowerCase().includes(search);
+            });
+            
+            filtered.forEach(c => {
+                const debt = calculateCustomerDebt(c.id);
+                select.innerHTML += `<option value="${c.id}">${c.name} - KSh ${formatCurrency(debt)}</option>`;
+            });
+        }
+
+        function filterPaymentCustomers() {
+            const searchTerm = document.getElementById('paymentCustomerSearch').value;
+            populatePaymentCustomers(searchTerm);
+        }
+
+        function loadCustomerInvoices() {
+            const customerId = document.getElementById('paymentCustomer').value;
+            const select = document.getElementById('paymentInvoice');
+            select.innerHTML = '<option value="">Apply to oldest debt first</option>';
+            const customerTransactions = transactions.filter(t => t.customerId === customerId);
+            customerTransactions.forEach(trans => {
+                const balance = calculateTransactionBalance(trans.id);
+                if (balance > 0) {
+                    select.innerHTML += `<option value="${trans.id}">${trans.id} - KSh ${formatCurrency(balance)}</option>`;
+                }
+            });
+        }
+
+        function savePayment() {
+            const payment = {
+                id: 'RCP-' + String(payments.length + 1).padStart(3, '0'),
+                customerId: document.getElementById('paymentCustomer').value,
+                invoiceId: document.getElementById('paymentInvoice').value || null,
+                date: document.getElementById('paymentDate').value,
+                method: document.getElementById('paymentMethod').value,
+                amount: parseFloat(document.getElementById('paymentAmount').value),
+                reference: document.getElementById('paymentReference').value
+            };
+            payments.push(payment);
+            if (saveToStorage()) {
+                renderPayments();
+                closeModal('paymentModal');
+                refreshAll();
+            initializeSettingsDisplay();
+            }
+        }
+
+        function renderPayments() {
+            const tbody = document.getElementById('paymentsList');
+            if (payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-light);">No payments</td></tr>';
+                return;
+            }
+            tbody.innerHTML = payments.slice().reverse().map(p => {
+                const customer = customers.find(c => c.id === p.customerId);
+                return `
+                    <tr>
+                        <td>${formatDate(p.date)}</td>
+                        <td>${customer ? customer.name : 'Unknown'}</td>
+                        <td><span class="badge">${p.method}</span></td>
+                        <td><strong>KSh ${formatCurrency(p.amount)}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function quickPayment(customerId, invoiceId) {
+            openPaymentModal();
+            setTimeout(() => {
+                document.getElementById('paymentCustomer').value = customerId;
+                loadCustomerInvoices();
+                document.getElementById('paymentInvoice').value = invoiceId;
+            }, 100);
+        }
+
+        // ============================================
+        // WHATSAPP MESSAGES
+        // ============================================
+
+        function openWhatsAppModal(customerId) {
+            currentCustomerForMessage = customerId;
+            const customer = customers.find(c => c.id === customerId);
+            document.getElementById('waCustomerName').textContent = customer.name;
+            document.getElementById('whatsappModal').classList.add('active');
+        }
+
+        function sendBalanceUpdate() {
+            if (DEMO_MODE) {
+                showDemoUpgradePrompt('WhatsApp Reminders');
+                return;
+            }
+            const customer = customers.find(c => c.id === currentCustomerForMessage);
+            const debt = calculateCustomerDebt(currentCustomerForMessage);
+            const customerTrans = transactions.filter(t => t.customerId === currentCustomerForMessage);
+            let nextDueDate = 'soon';
+            if (customerTrans.length > 0) {
+                const futureDueDates = customerTrans.map(t => new Date(t.dueDate))
+                    .filter(d => d > new Date()).sort((a, b) => a - b);
+                if (futureDueDates.length > 0) {
+                    nextDueDate = formatDate(futureDueDates[0].toISOString().split('T')[0]);
+                }
+            }
+            const message = `Hello ${customer.name}, this is a balance update from ${appSettings.shopName}.\n\nYour current outstanding balance is KSh ${formatCurrency(debt)}.\n\nKindly plan to clear by ${nextDueDate}. Thank you.`;
+            const url = `https://wa.me/${customer.phone.replace(/^0/, '254')}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            closeModal('whatsappModal');
+        }
+
+        function sendFriendlyReminder() {
+            const customer = customers.find(c => c.id === currentCustomerForMessage);
+            const debt = calculateCustomerDebt(currentCustomerForMessage);
+            const message = `Hi ${customer.name}! 😊\n\nHope you're doing well. Just a friendly reminder about your balance with ${appSettings.shopName}.\n\nOutstanding: KSh ${formatCurrency(debt)}\n\nNo rush, but please let us know when you can settle. Thank you!`;
+            const url = `https://wa.me/${customer.phone.replace(/^0/, '254')}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            closeModal('whatsappModal');
+        }
+
+        function sendFirmReminder() {
+            const customer = customers.find(c => c.id === currentCustomerForMessage);
+            const debt = calculateCustomerDebt(currentCustomerForMessage);
+            const message = `Dear ${customer.name},\n\nThis is an important reminder from ${appSettings.shopName}.\n\nYour account is now overdue:\nOutstanding Balance: KSh ${formatCurrency(debt)}\n\nPlease settle this amount at your earliest convenience to maintain good credit standing.\n\nContact us if you need to discuss payment arrangements.\n\nThank you.`;
+            const url = `https://wa.me/${customer.phone.replace(/^0/, '254')}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            closeModal('whatsappModal');
+        }
+
+        function sendCustomerStatement() {
+            viewCustomerStatement(currentCustomerForMessage);
+            closeModal('whatsappModal');
+        }
+
+        // ============================================
+        // CUSTOMER STATEMENT
+        // ============================================
+
+        function viewCustomerStatement(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+            const customerTransactions = transactions.filter(t => t.customerId === customerId);
+            const customerPayments = payments.filter(p => p.customerId === customerId);
+            const totalCharges = customerTransactions.reduce((sum, t) => sum + t.amount, 0);
+            const totalPayments = customerPayments.reduce((sum, p) => sum + p.amount, 0);
+            const balance = totalCharges - totalPayments;
+            let statementHTML = `
+                <div style="background: var(--primary); color: white; padding: 25px 20px; border-radius: 15px 15px 0 0;">
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">CUSTOMER STATEMENT</div>
+                    <div style="margin-top: 10px;">
+                        <strong>${customer.name}</strong><br>${customer.phone}<br>${customer.address || 'No address'}<br>ID: ${customer.id}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 14px;">Date: ${formatDate(new Date().toISOString().split('T')[0])}</div>
+                </div>
+                <div style="padding: 20px;">
+                    <h4 style="margin-bottom: 15px; color: var(--primary);">Transaction History</h4>
+                    <div class="table-container"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th></tr></thead><tbody>
+            `;
+            const allEntries = [
+                ...customerTransactions.map(t => ({...t, type: 'charge', sortDate: t.date})),
+                ...customerPayments.map(p => ({...p, type: 'payment', sortDate: p.date}))
+            ].sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate));
+            allEntries.forEach(entry => {
+                if (entry.type === 'charge') {
+                    statementHTML += `
+                        <tr>
+                            <td>${formatDate(entry.date)}</td>
+                            <td><span class="badge badge-danger">Sale</span></td>
+                            <td>${entry.description}<br><small style="color: var(--text-light);">${entry.id} • Taken by: ${entry.takenBy}</small></td>
+                            <td><strong style="color: var(--danger);">KSh ${formatCurrency(entry.amount)}</strong></td>
+                        </tr>
+                    `;
+                } else {
+                    statementHTML += `
+                        <tr>
+                            <td>${formatDate(entry.date)}</td>
+                            <td><span class="badge badge-success">Payment</span></td>
+                            <td>${entry.method}<br><small style="color: var(--text-light);">${entry.id}</small></td>
+                            <td><strong style="color: var(--success);">KSh ${formatCurrency(entry.amount)}</strong></td>
+                        </tr>
+                    `;
+                }
+            });
+            statementHTML += `
+                    </tbody></table></div>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                            <span>Total Charges:</span><span>KSh ${formatCurrency(totalCharges)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                            <span>Total Payments:</span><span>KSh ${formatCurrency(totalPayments)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; font-weight: 700; font-size: 16px; color: var(--primary);">
+                            <span>Balance Due:</span><span style="color: ${balance > 0 ? 'var(--danger)' : 'var(--success)'}">KSh ${formatCurrency(balance)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('statementContent').innerHTML = statementHTML;
+            document.getElementById('statementModal').classList.add('active');
+            document.getElementById('statementModal').dataset.customerId = customerId;
+        }
+
+        function shareStatement() {
+            const customerId = document.getElementById('statementModal').dataset.customerId;
+            const customer = customers.find(c => c.id === customerId);
+            const debt = calculateCustomerDebt(customerId);
+            const customerTransactions = transactions.filter(t => t.customerId === customerId);
+            const customerPayments = payments.filter(p => p.customerId === customerId);
+            let message = `*STATEMENT FROM ${appSettings.shopName.toUpperCase()}*\n\nCustomer: ${customer.name}\nDate: ${formatDate(new Date().toISOString().split('T')[0])}\n\n*TRANSACTIONS:*\n`;
+            customerTransactions.forEach(t => {
+                message += `${formatDate(t.date)} - ${t.description}\nAmount: KSh ${formatCurrency(t.amount)}\nTaken by: ${t.takenBy}\n\n`;
+            });
+            message += `*PAYMENTS:*\n`;
+            customerPayments.forEach(p => {
+                message += `${formatDate(p.date)} - ${p.method}\nAmount: KSh ${formatCurrency(p.amount)}\n\n`;
+            });
+            message += `*BALANCE DUE: KSh ${formatCurrency(debt)}*`;
+            const url = `https://wa.me/${customer.phone.replace(/^0/, '254')}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        // ============================================
+        // REPORTS
+        // ============================================
+
+        function generateOutstandingReport() {
+            const outstanding = customers.map(c => ({ customer: c, debt: calculateCustomerDebt(c.id) }))
+                .filter(item => item.debt > 0).sort((a, b) => b.debt - a.debt);
+            if (outstanding.length === 0) {
+                alert('No outstanding debts!');
+                return;
+            }
+            let report = `*OUTSTANDING DEBTS REPORT*\n${appSettings.shopName}\nDate: ${formatDate(new Date().toISOString().split('T')[0])}\n\n`;
+            outstanding.forEach((item, i) => {
+                report += `${i + 1}. ${item.customer.name}\n   ${item.customer.phone}\n   Balance: KSh ${formatCurrency(item.debt)}\n\n`;
+            });
+            const total = outstanding.reduce((sum, item) => sum + item.debt, 0);
+            report += `*TOTAL OUTSTANDING: KSh ${formatCurrency(total)}*`;
+            const url = `https://wa.me/?text=${encodeURIComponent(report)}`;
+            window.open(url, '_blank');
+        }
+
+        function generateOverdueReport() {
+            const today = new Date();
+            const overdue = customers.filter(c => hasOverdueDebts(c.id)).map(c => {
+                let overdueAmount = 0;
+                transactions.filter(t => t.customerId === c.id).forEach(t => {
+                    const balance = calculateTransactionBalance(t.id);
+                    if (balance > 0 && new Date(t.dueDate) < today) overdueAmount += balance;
+                });
+                return { customer: c, amount: overdueAmount };
+            }).sort((a, b) => b.amount - a.amount);
+            if (overdue.length === 0) {
+                alert('No overdue debts!');
+                return;
+            }
+            let report = `*OVERDUE CUSTOMERS REPORT*\n${appSettings.shopName}\nDate: ${formatDate(new Date().toISOString().split('T')[0])}\n\n`;
+            overdue.forEach((item, i) => {
+                report += `${i + 1}. ${item.customer.name}\n   ${item.customer.phone}\n   Overdue: KSh ${formatCurrency(item.amount)}\n\n`;
+            });
+            const total = overdue.reduce((sum, item) => sum + item.amount, 0);
+            report += `*TOTAL OVERDUE: KSh ${formatCurrency(total)}*`;
+            const url = `https://wa.me/?text=${encodeURIComponent(report)}`;
+            window.open(url, '_blank');
+        }
+
+        function generateCustomerSummary() {
+            let report = `*CUSTOMER-WISE DEBT SUMMARY*\n${appSettings.shopName}\nDate: ${formatDate(new Date().toISOString().split('T')[0])}\n\n`;
+            customers.forEach((c, i) => {
+                const debt = calculateCustomerDebt(c.id);
+                if (debt > 0) {
+                    report += `${i + 1}. ${c.name} (${c.id})\n   Phone: ${c.phone}\n   Balance: KSh ${formatCurrency(debt)}\n`;
+                    const aging = calculateDebtAging(c.id);
+                    if (aging.current > 0) report += `   0-30 days: KSh ${formatCurrency(aging.current)}\n`;
+                    if (aging.aging30 > 0) report += `   31-60 days: KSh ${formatCurrency(aging.aging30)}\n`;
+                    if (aging.aging60 > 0) report += `   60+ days: KSh ${formatCurrency(aging.aging60)}\n`;
+                    report += `\n`;
+                }
+            });
+            const total = customers.reduce((sum, c) => sum + calculateCustomerDebt(c.id), 0);
+            report += `*TOTAL DEBT: KSh ${formatCurrency(total)}*`;
+            const url = `https://wa.me/?text=${encodeURIComponent(report)}`;
+            window.open(url, '_blank');
+        }
+
+        // ============================================
+        // MODAL CLICK-OUTSIDE CLOSE
+        // ============================================
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
